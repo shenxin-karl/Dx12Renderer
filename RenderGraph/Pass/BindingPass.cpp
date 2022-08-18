@@ -5,11 +5,17 @@
 
 namespace rg {
 
+void BindingPass::link(dx12lib::ICommonContext &commonCtx) const {
+	pRenderTarget.link(commonCtx);
+	pDepthStencil.link(commonCtx);
+}
+
 void BindingPass::addBind(std::shared_ptr<Bindable> pBindable) {
 	_bindables.push_back(std::move(pBindable));
 }
 
 void BindingPass::bindAll(dx12lib::IGraphicsContext &graphicsCtx) const {
+	link(graphicsCtx);
 	for (auto &pBindable : _bindables)
 		pBindable->bind(graphicsCtx);
 }
@@ -25,18 +31,18 @@ void BindingPass::bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx) const
 	}
 }
 
-void BindingPass::reset() {
-	Pass::reset();
-	pRenderTarget = nullptr;
-	pDepthStencil = nullptr;
+DXGI_FORMAT BindingPass::getRtFormat(size_t slot) const {
+	return pRenderTarget->getFormat();
 }
 
-std::shared_ptr<Bindable> BindingPass::getBindableByType(::rg::BindableType bindableType) const {
-	for (auto &pBindable : _bindables) {
-		if (pBindable->getBindableType() == bindableType)
-			return pBindable;
-	}
-	return nullptr;
+DXGI_FORMAT BindingPass::getDsFormat() const {
+	return pDepthStencil->getFormat();
+}
+
+void BindingPass::reset() {
+	Pass::reset();
+	pRenderTarget.reset();
+	pDepthStencil.reset();
 }
 
 }
