@@ -11,7 +11,7 @@ class CommandList : public std::enable_shared_from_this<CommandList>, public IDi
 protected:
 	CommandList(std::weak_ptr<FrameResourceItem> pFrameResourceItem);
 public:
-	~CommandList();
+	~CommandList() override;
 /// Context api
 	std::weak_ptr<Device> getDevice() const override;
 	ID3D12GraphicsCommandList *getD3DCommandList() const noexcept override;
@@ -26,7 +26,7 @@ public:
 	std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromFile(const std::wstring &fileName) override;
 	std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromMemory(const void *pData, size_t sizeInByte) override;
 	std::shared_ptr<IShaderResource> createTextureFromFile(const std::wstring &fileName, bool sRGB) override;
-	std::shared_ptr<IShaderResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB);
+	std::shared_ptr<IShaderResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB) override;
 
 	void setDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, WRL::ComPtr<ID3D12DescriptorHeap> pHeap) override;
 	void setConstantBufferView(const ShaderRegister &sr, const ConstantBufferView &cbv) override;
@@ -35,7 +35,7 @@ public:
 
 	void copyResourceImpl(std::shared_ptr<IResource> pDest, std::shared_ptr<IResource> pSrc) override;
 	void transitionBarrierImpl(std::shared_ptr<IResource> pBuffer, D3D12_RESOURCE_STATES state, UINT subResource, bool flushBarrier) override;
-	void aliasBarrierImpl(std::shared_ptr<IResource> pBeforce, std::shared_ptr<IResource> pAfter, bool flushBarrier) override;
+	void aliasBarrierImpl(std::shared_ptr<IResource> pBefore, std::shared_ptr<IResource> pAfter, bool flushBarrier) override;
 	void flushResourceBarriers() override;
 
 /// GraphicsContext api
@@ -113,6 +113,7 @@ private:
 		D3D_PRIMITIVE_TOPOLOGY primitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 		ID3D12DescriptorHeap *pDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 	public:
+		CommandListState();
 		bool debugCheckDraw() const;
 		bool debugCheckDrawIndex() const;
 		bool checkVertexBuffer() const;

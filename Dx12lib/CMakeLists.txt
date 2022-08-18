@@ -29,8 +29,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 	d3dcompiler
 	D3D12
 	dxgi
-	Exception
-	D3D
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC

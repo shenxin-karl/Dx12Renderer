@@ -318,11 +318,11 @@ void CommandList::transitionBarrierImpl(std::shared_ptr<IResource> pBuffer,
 		flushResourceBarriers();
 }
 
-void CommandList::aliasBarrierImpl(std::shared_ptr<IResource> pBeforce, 
+void CommandList::aliasBarrierImpl(std::shared_ptr<IResource> pBefore,
 	std::shared_ptr<IResource> pAfter, 
 	bool flushBarrier) 
 {
-	_pResourceStateTracker->aliasBarrier(pBeforce.get(), pAfter.get());
+	_pResourceStateTracker->aliasBarrier(pBefore.get(), pAfter.get());
 	if (flushBarrier)
 		flushResourceBarriers();
 }
@@ -795,6 +795,11 @@ do {										\
 		return false;						\
 	}										\
 } while (false)
+
+	CommandList::CommandListState::CommandListState() {
+		std::memset(this, 0, sizeof(*this));
+	}
+
 bool CommandList::CommandListState::debugCheckDraw() const {
 	CheckState(pPSO != nullptr, "PipelineStateObject not set");
 	CheckState(dynamic_cast<GraphicsPSO *>(pPSO), "PipelineStateObject cast to GraphicsPSO failed!");
