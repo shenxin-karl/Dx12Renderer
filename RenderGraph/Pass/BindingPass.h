@@ -3,21 +3,24 @@
 #include <RenderGraph/Pass/Pass.h>
 #include <Dx12lib/Context/ContextProxy.hpp>
 #include <RenderGraph/Bindable/Bindable.hpp>
+#include <RenderGraph/Pass/PassResourcePtr.hpp>
 
 namespace rg {
 
 class BindingPass : public Pass {
 public:
 	using Pass::Pass;
+	virtual void link(dx12lib::ICommonContext &commonCtx) const;
 	void addBind(std::shared_ptr<Bindable> pBindable);
 	void bindAll(dx12lib::IGraphicsContext &graphicsCtx) const;
 	void bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx) const;
+	DXGI_FORMAT getRtFormat(size_t slot = 0) const;
+	DXGI_FORMAT getDsFormat() const;
 	void reset() override;
-	std::shared_ptr<Bindable> getBindableByType(BindableType bindableType) const;
 public:
 	size_t renderTargetMipmap = 0;
-	std::shared_ptr<dx12lib::RenderTarget2D> pRenderTarget;
-	std::shared_ptr<dx12lib::DepthStencil2D> pDepthStencil;
+	PassResourcePtr<dx12lib::RenderTarget2D> pRenderTarget;
+	PassResourcePtr<dx12lib::DepthStencil2D> pDepthStencil;
 private:
 	std::vector<std::shared_ptr<Bindable>> _bindables;
 };
