@@ -2,6 +2,8 @@
 #include <RenderGraph/Pass/BindingPass.h>
 #include <Dx12lib/Texture/RenderTargetTexture.h>
 
+#include "Dx12lib/Texture/DepthStencilTexture.h"
+
 namespace rg {
 
 class ClearRtPass : public BindingPass {
@@ -38,8 +40,8 @@ public:
 		link(*pGraphicsCtx);
 		auto clearValue = pDepthStencil->getClearValue();
 		pGraphicsCtx->clearDepthStencil(
-			pDepthStencil, 
-			clearValue.DepthStencil.Depth, 
+			pDepthStencil,
+			clearValue.DepthStencil.Depth,
 			clearValue.DepthStencil.Stencil
 		);
 	}

@@ -13,6 +13,7 @@ public:
 	void accept(const Job &job);
 	void execute(dx12lib::IGraphicsContext &graphicsCtx) const;
 	void reset();
+	size_t getJobCount() const;
 private:
 	std::vector<Job> _jobs;
 	RenderQueuePass *_pRenderQueuePass;

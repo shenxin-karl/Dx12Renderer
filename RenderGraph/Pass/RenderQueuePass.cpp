@@ -30,6 +30,9 @@ void SubPass::accept(const Job &job) {
 }
 
 void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx) const {
+	if (_jobs.empty())
+		return;
+
 	_pGraphicsPSOBindable->bind(graphicsCtx);
 	for (auto &pBindable : _bindables)
 		pBindable->bind(graphicsCtx);
@@ -40,6 +43,10 @@ void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx) const {
 
 void SubPass::reset() {
 	_jobs.clear();
+}
+
+size_t SubPass::getJobCount() const {
+	return _jobs.size();
 }
 
 std::shared_ptr<SubPass> RenderQueuePass::getSubPassByName(const std::string &subPassName) const {
@@ -61,6 +68,13 @@ std::shared_ptr<SubPass> RenderQueuePass::getOrCreateSubPass(std::shared_ptr<Gra
 }
 
 void RenderQueuePass::execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const {
+	bool hasJob = true;
+	for (auto &pSubPass : _subPasses)
+		hasJob = hasJob && (pSubPass->getJobCount() > 0);
+
+	if (!hasJob)
+		return;
+
 	bindAll(*pGraphicsCtx);
 	bindRenderTarget(*pGraphicsCtx);
 	for (auto &pSubPass : _subPasses)
