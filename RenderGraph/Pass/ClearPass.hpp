@@ -6,7 +6,9 @@ namespace rg {
 
 class ClearRtPass : public BindingPass {
 public:
-	using BindingPass::BindingPass;
+	ClearRtPass(const std::string &passName) : BindingPass(passName) {
+		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	}
 
 	void link(dx12lib::ICommonContext &commonCtx) const override {
 		assert(pRenderTarget != nullptr);
@@ -22,7 +24,9 @@ public:
 
 class CLearDsPass : public BindingPass {
 public:
-	using BindingPass::BindingPass;
+	CLearDsPass(const std::string &passName) : BindingPass(passName) {
+		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	}
 
 	void link(dx12lib::ICommonContext &commonCtx) const override {
 		assert(pDepthStencil != nullptr);
@@ -32,7 +36,12 @@ public:
 	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
 		assert(pRenderTarget == nullptr);
 		link(*pGraphicsCtx);
-		pGraphicsCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
+		auto clearValue = pDepthStencil->getClearValue();
+		pGraphicsCtx->clearDepthStencil(
+			pDepthStencil, 
+			clearValue.DepthStencil.Depth, 
+			clearValue.DepthStencil.Stencil
+		);
 	}
 };
 

@@ -1,6 +1,4 @@
 #include "BindingPass.h"
-#include "Dx12lib/Texture/DepthStencilTexture.h"
-#include "Dx12lib/Texture/RenderTargetTexture.h"
 #include "RenderGraph/Bindable/Bindable.hpp"
 
 namespace rg {

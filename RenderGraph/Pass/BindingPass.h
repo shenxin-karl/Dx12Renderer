@@ -4,6 +4,8 @@
 #include <Dx12lib/Context/ContextProxy.hpp>
 #include <RenderGraph/Bindable/Bindable.hpp>
 #include <RenderGraph/Pass/PassResourcePtr.hpp>
+#include <Dx12lib/Texture/DepthStencilTexture.h>
+#include <Dx12lib/Texture/RenderTargetTexture.h>
 
 namespace rg {
 
