@@ -26,7 +26,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC 
-	dx12lib
+	Dx12lib
 )
 
 # 开启多线程编译 和 使用 c++latest 版本

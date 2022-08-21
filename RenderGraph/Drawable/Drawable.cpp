@@ -9,8 +9,11 @@ namespace rg {
 void Drawable::bind(dx12lib::IGraphicsContext &graphicsCtx) const {
 	assert(_topology != D3D_PRIMITIVE_TOPOLOGY_UNDEFINED);
 	graphicsCtx.setPrimitiveTopology(_topology);
-	if (_pVertexBuffer != nullptr)
-		graphicsCtx.setVertexBuffer(_pVertexBuffer);
+	for (size_t i = 0; i < std::size(_pVertexBuffers); ++i) {
+		if (_pVertexBuffers[i] != nullptr)
+			graphicsCtx.setVertexBuffer(_pVertexBuffers[i], static_cast<UINT>(i));
+	}
+
 	if (_pIndexBuffer != nullptr)
 		graphicsCtx.setIndexBuffer(_pIndexBuffer);
 }
@@ -20,24 +23,45 @@ void Drawable::submit(const TechniqueFlag &techniqueFlag) const {
 		pTechnique->submit(*this, techniqueFlag);
 }
 
-void Drawable::addTechnique(std::unique_ptr<Technique> pTechnique) {
+bool Drawable::addTechnique(std::shared_ptr<Technique> pTechnique) {
+	assert(pTechnique);
+	if (hasTechnique(pTechnique->getTechniqueType()))
+		return false;
+
+	_techniqueFlag.set(pTechnique->getTechniqueType());
 	_techniques.push_back(std::move(pTechnique));
+	return true;
 }
 
-void Drawable::remoteTechnique(const std::string &techniqueName) {
-	auto iter = _techniques.begin();
-	while (iter != _techniques.end()) {
-		if ((* iter)->getTechniqueName() == techniqueName)
-			iter = _techniques.erase(iter);
-	}
+bool Drawable::hasTechnique(const TechniqueType &techniqueType) const {
+	return _techniqueFlag.test(techniqueType);
 }
 
-Technique * Drawable::getTechnique(const std::string &techniqueName) const {
-	for (auto &pTechnique : _techniques) {
-		if (pTechnique->getTechniqueName() == techniqueName)
-			return pTechnique.get();
+bool Drawable::removeTechnique(const TechniqueType &techniqueType) {
+	if (!hasTechnique(techniqueType))
+		return false;
+
+	for (auto iter = _techniques.begin(); iter != _techniques.end(); ++iter) {
+		if ((*iter)->getTechniqueType() & techniqueType) {
+			_techniques.erase(iter);
+			return true;
+		}
 	}
-	return nullptr;
+
+	assert(false);
+	return false;
+}
+
+void Drawable::setTechniqueActive(const TechniqueType &techniqueType, bool bActivate) {
+	if (!hasTechnique(techniqueType))
+		return;
+
+	for (auto iter = _techniques.begin(); iter != _techniques.end(); ++iter) {
+		if ((*iter)->getTechniqueType() & techniqueType) {
+			(*iter)->setActive(bActivate);
+			return;
+		}
+	}
 }
 
 void Drawable::setDrawArgs(const DrawArgs &drawArgs) {
@@ -52,8 +76,12 @@ void Drawable::setIndexBuffer(std::shared_ptr<dx12lib::IndexBuffer> pIndexBuffer
 	_pIndexBuffer = std::move(pIndexBuffer);
 }
 
-void Drawable::setVertexBuffer(std::shared_ptr<dx12lib::VertexBuffer> pVertexBuffer) {
-	_pVertexBuffer = std::move(pVertexBuffer);
+void Drawable::setVertexBuffer(std::shared_ptr<dx12lib::VertexBuffer> pVertexBuffer, size_t slot) {
+	assert(slot < std::size(_pVertexBuffers));
+	if (slot >= std::size(_pVertexBuffers))
+		throw std::out_of_range(std::format("Drawable::setVertexBuffer {} out of range", slot));
+
+	_pVertexBuffers[slot] = std::move(pVertexBuffer);
 }
 
 const DrawArgs & Drawable::getDrawArgs() const {
@@ -68,15 +96,30 @@ std::shared_ptr<dx12lib::IndexBuffer> Drawable::getIndexBuffer() const {
 	return _pIndexBuffer;
 }
 
-std::shared_ptr<dx12lib::VertexBuffer> Drawable::getVertexBuffer() const {
-	return _pVertexBuffer;
+std::shared_ptr<dx12lib::VertexBuffer> Drawable::getVertexBuffer(size_t slot) const {
+	if (slot >= std::size(_pVertexBuffers))
+		throw std::out_of_range(std::format("Drawable::getVertexBuffer {} out of range", slot));
+	return _pVertexBuffers[slot];
 }
 
 void Drawable::genDrawArgs() {
-	assert(_pVertexBuffer != nullptr);
-	_drawArgs.vertexCount = _pVertexBuffer->getVertexCount();
+	size_t vertexCount = 0;
+	for (size_t i = 0; i < std::size(_pVertexBuffers); ++i) {
+		if (vertexCount == 0 && _pVertexBuffers[i] != nullptr) {
+			vertexCount = _pVertexBuffers[i]->getVertexCount();
+		} else if (vertexCount != 0) {
+			assert(vertexCount == _pVertexBuffers[i]->getVertexCount());
+		}
+	}
+
+	_drawArgs.vertexCount = vertexCount;
 	if (_pIndexBuffer != nullptr)
 		_drawArgs.indexCount = _pIndexBuffer->getIndexCount();
+}
+
+void Drawable::clearTechnique() {
+	_techniques.clear();
+	_techniqueFlag.reset();
 }
 
 }

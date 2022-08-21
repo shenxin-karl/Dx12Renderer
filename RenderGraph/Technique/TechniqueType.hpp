@@ -3,29 +3,42 @@
 
 namespace rg {
 
-enum class TechniqueType : size_t {
-	None,
-	Color,
-	Shadow,
-	Count,
-	AllSet = Count,
+// TechniqueType
+// todo: 为什么不直接使用 size_t, 因为这样是类型安全的
+struct TechniqueType {
+	constexpr TechniqueType() = default;
+	constexpr explicit TechniqueType(size_t techniqueType) : _techniqueType(techniqueType) {}
+	constexpr TechniqueType(const TechniqueType &) = default;
+	constexpr TechniqueType(TechniqueType &&) = default;
+	constexpr TechniqueType &operator=(const TechniqueType &) = default;
+	constexpr TechniqueType &operator=(TechniqueType &&) = default;
+	constexpr ~TechniqueType() = default;
+
+	operator size_t() const noexcept {
+		return _techniqueType;
+	}
+
+	friend TechniqueType operator&(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+		return TechniqueType{ lhs._techniqueType & rhs._techniqueType };
+	}
+
+	friend TechniqueType operator|(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+		return TechniqueType{ lhs._techniqueType | rhs._techniqueType };
+	}
+
+	friend TechniqueType operator^(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+		return TechniqueType{ lhs._techniqueType ^ rhs._techniqueType };
+	}
+
+	static TechniqueType None;
+	static TechniqueType AllSet;
+	constexpr static size_t Count = 64;
+private:
+	size_t _techniqueType = 0;
 };
 
-constexpr TechniqueType operator|(const TechniqueType &lhs, const TechniqueType &rhs) {
-	return static_cast<TechniqueType>(static_cast<size_t>(lhs) | static_cast<size_t>(rhs));
-}
-
-constexpr TechniqueType operator&(const TechniqueType &lhs, const TechniqueType &rhs) {
-	return static_cast<TechniqueType>(static_cast<size_t>(lhs) & static_cast<size_t>(rhs));
-}
-
-constexpr TechniqueType operator~(const TechniqueType &tt) {
-	return static_cast<TechniqueType>(~static_cast<size_t>(tt));
-}
-
-constexpr TechniqueType operator^(const TechniqueType &lhs, const TechniqueType &rhs) {
-	return static_cast<TechniqueType>(static_cast<size_t>(lhs) ^ static_cast<size_t>(rhs));
-}
+inline TechniqueType TechniqueType::None{ 0 };
+inline TechniqueType TechniqueType::AllSet{ static_cast<size_t>(-1) };
 
 struct TechniqueFlag {
 	TechniqueFlag(TechniqueType techniqueType) : _bits(0) {
@@ -62,7 +75,7 @@ struct TechniqueFlag {
 		_bits.flip();
 	}
 
-	friend void swap(TechniqueFlag &lhs, TechniqueFlag &rhs) {
+	friend void swap(TechniqueFlag &lhs, TechniqueFlag &rhs) noexcept {
 		using std::swap;
 		swap(lhs._bits, rhs._bits);
 	}

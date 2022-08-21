@@ -385,6 +385,7 @@ public:
 	FORCEINLINE Quaternion(const Vector3 &axis, float angle);
 	FORCEINLINE Quaternion(const float3 &axis, float angle);
 	FORCEINLINE Quaternion(float pitch, float yaw, float roll);
+	FORCEINLINE Quaternion(float x, float y, float z, float w);
 	FORCEINLINE explicit Quaternion(const float4 &f4);
 	FORCEINLINE explicit Quaternion(const Matrix3 &matrix);
 	FORCEINLINE explicit Quaternion(DX::FXMVECTOR vec);

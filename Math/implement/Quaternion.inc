@@ -15,6 +15,10 @@ FORCEINLINE Quaternion::Quaternion(float pitch, float yaw, float roll) {
 	_vec = DX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
 }
 
+FORCEINLINE Quaternion::Quaternion(float x, float y, float z, float w) {
+	_vec = DX::XMVectorSet(x, y, z, w);
+}
+
 FORCEINLINE Quaternion::Quaternion(const float4 &f4) {
 	_vec = DX::XMLoadFloat4(&f4);
 }
