@@ -24,9 +24,9 @@ public:
 	}
 };
 
-class CLearDsPass : public BindingPass {
+class ClearDsPass : public BindingPass {
 public:
-	CLearDsPass(const std::string &passName) : BindingPass(passName) {
+	ClearDsPass(const std::string &passName) : BindingPass(passName) {
 		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}
 
@@ -39,6 +39,26 @@ public:
 		assert(pRenderTarget == nullptr);
 		link(*pGraphicsCtx);
 		auto clearValue = pDepthStencil->getClearValue();
+		pGraphicsCtx->clearDepthStencil(
+			pDepthStencil,
+			clearValue.DepthStencil.Depth,
+			clearValue.DepthStencil.Stencil
+		);
+	}
+};
+
+class ClearPass : public BindingPass {
+public:
+	ClearPass(const std::string &passName) : BindingPass(passName) {
+		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	}
+
+	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
+		assert(pRenderTarget == nullptr);
+		link(*pGraphicsCtx);
+		auto clearValue = pDepthStencil->getClearValue();
+		pGraphicsCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
 		pGraphicsCtx->clearDepthStencil(
 			pDepthStencil,
 			clearValue.DepthStencil.Depth,

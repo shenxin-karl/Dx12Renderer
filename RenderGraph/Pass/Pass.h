@@ -8,7 +8,6 @@ namespace rg {
 class Pass : public NonCopyable {
 public:
 	explicit Pass(const std::string &passName);
-	virtual void preExecute(dx12lib::GraphicsContextProxy pGraphicsCtx) const {}
 	virtual void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const = 0;
 	virtual void reset() {}
 	void setPassName(const std::string &passName);

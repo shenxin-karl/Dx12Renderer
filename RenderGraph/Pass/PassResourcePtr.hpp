@@ -7,6 +7,9 @@ namespace rg {
 template<typename T>
 class PassResourcePtr {
 public:
+	template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
+	friend void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs);
+
 	void link(dx12lib::ICommonContext &commonCtx) const {
 		assert(_refCount == 0);
 		assert(_bindFunc != nullptr);
@@ -17,56 +20,9 @@ public:
 		commonCtx.transitionBarrier(_pResource, preExecuteState);
 	}
 
-	template<typename T1>
-	void moveTo(PassResourcePtr<T1> &to) {
-		++_refCount;
-		to._bindFunc = [&]() {
-			releaseReference();
-			to._pResource = std::move(_pResource);
-		};
-	}
-
-	template<typename T1>
-	void copyTo(PassResourcePtr<T1> &to) {
-		++_refCount;
-		to.bindFunc = [&]() {
-			releaseReference();
-			to._pResource = _pResource;
-		};
-	}
-
-	template<typename T1>
-	void moveTo(PassResourcePtr<T1> &to, std::function<void(std::shared_ptr<T>)> &&bindCallback) {
-		++_refCount;
-		to._bindFunc = [&, callback = std::move(bindCallback)]() {
-			callback(_pResource);
-			assert(_pResource == nullptr);
-			releaseReference();
-		};
-	}
-
-	template<typename T1>
-	void copyTo(PassResourcePtr<T1> &to, std::function<void(std::shared_ptr<T>)> &&bindCallback) {
-		++_refCount;
-		to._bindFunc = [&, callback = std::move(bindCallback)]() {
-			callback(_pResource);
-			releaseReference();
-		};
-	}
-
-	template<typename T1>
-	void from(std::shared_ptr<T1> &pResource) {
-		_bindFunc = [&]() {
-			_pResource = pResource;
-			assert(_pResource != nullptr);
-		};
-	}
-
-	void from(std::function<std::shared_ptr<T>()> &&getFunc) {
-		_bindFunc = [&, _getFunc = std::move(getFunc)]() {
-			_pResource = _getFunc();
-			assert(_pResource != nullptr);
-		};
+	PassResourcePtr &operator=(std::nullptr_t) {
+		_pResource = nullptr;
+		return *this;
 	}
 
 	~PassResourcePtr() {
@@ -93,6 +49,23 @@ public:
 		return pResource._pResource != nullptr;
 	}
 
+	friend void operator>>(std::function<std::shared_ptr<T>()> callback, PassResourcePtr &rhs) {
+		rhs._bindFunc = [&, cb = std::move(callback)]() {
+			rhs._pResource = std::move(cb());
+		};
+	}
+
+	friend void operator>>(std::shared_ptr<T> pOther, PassResourcePtr &rhs) {
+		rhs._bindFunc = [&, ptr = std::move(pOther)]() mutable {
+			rhs._pResource = std::move(ptr);
+		};
+	}
+
+	void reset() {
+		assert(_pResource != nullptr && !_linked);
+		_pResource = nullptr;
+	}
+
 private:
 	friend class BindingPass;
 	void releaseReference() {
@@ -102,11 +75,6 @@ private:
 			_pResource = nullptr;
 	}
 
-	void reset() {
-		assert(_refCount != 0);
-		assert(_pResource != nullptr && !_linked);
-		_pResource = nullptr;
-	}
 private:
 	int _refCount = 0;
 	mutable bool _linked = false;
@@ -115,5 +83,14 @@ private:
 public:
 	D3D12_RESOURCE_STATES preExecuteState = D3D12_RESOURCE_STATE_COMMON;
 };
+
+
+template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
+void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs) {
+	rhs._bindFunc = [&]() {
+		rhs._pResource = lhs._pResource;
+		lhs.releaseReference();
+	};
+}
 
 }
