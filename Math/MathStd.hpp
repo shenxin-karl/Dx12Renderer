@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <DirectXMath.h>
 #include <ostream>
+#include <DirectXCollision.h>
+#include <array>
 #undef min
 #undef max
 #define FORCEINLINE __forceinline
@@ -381,32 +383,32 @@ private:
 
 class alignas(16) Quaternion {
 public:
-	FORCEINLINE Quaternion();
-	FORCEINLINE Quaternion(const Vector3 &axis, float angle);
-	FORCEINLINE Quaternion(const float3 &axis, float angle);
-	FORCEINLINE Quaternion(float pitch, float yaw, float roll);
-	FORCEINLINE Quaternion(float x, float y, float z, float w);
-	FORCEINLINE explicit Quaternion(const float4 &f4);
-	FORCEINLINE explicit Quaternion(const Matrix3 &matrix);
-	FORCEINLINE explicit Quaternion(DX::FXMVECTOR vec);
-	FORCEINLINE operator DX::XMVECTOR() const;
-	FORCEINLINE explicit operator float4() const;
-	FORCEINLINE explicit operator Matrix3() const;
-	FORCEINLINE explicit operator Matrix4() const;
-	FORCEINLINE Quaternion operator~() const;
-	FORCEINLINE Quaternion operator*(const Quaternion &rhs) const;
-	FORCEINLINE Vector3 operator*(const Vector3 &rhs) const;
-	FORCEINLINE Quaternion &operator=(const Quaternion &rhs);
-	FORCEINLINE Quaternion &operator*=(const Quaternion &rhs);
-	FORCEINLINE DX::XMVECTOR *operator&();
-	friend BoolVector operator==(const Quaternion &, const Quaternion &);
-	friend BoolVector operator!=(const Quaternion &, const Quaternion &);
-	friend Quaternion normalize(const Quaternion &q);
-	friend Quaternion inverse(const Quaternion &q);
-	friend Quaternion slerp(const Quaternion &lhs, const Quaternion &rhs, float t);
-	friend Quaternion lerp(const Quaternion &lhs, const Quaternion &rhs, float t);
-	friend Quaternion conjugate(const Quaternion &q);
-	friend std::ostream &operator<<(std::ostream &os, const Quaternion &q);
+	FORCEINLINE Quaternion() noexcept;
+	FORCEINLINE Quaternion(const Vector3 &axis, float angle) noexcept;
+	FORCEINLINE Quaternion(const float3 &axis, float angle) noexcept;
+	FORCEINLINE Quaternion(float pitch, float yaw, float roll) noexcept;
+	FORCEINLINE Quaternion(float x, float y, float z, float w) noexcept;
+	FORCEINLINE explicit Quaternion(const float4 &f4) noexcept;
+	FORCEINLINE explicit Quaternion(const Matrix3 &matrix) noexcept;
+	FORCEINLINE explicit Quaternion(DX::FXMVECTOR vec) noexcept;
+	FORCEINLINE operator DX::XMVECTOR() const noexcept;
+	FORCEINLINE explicit operator float4() const noexcept;
+	FORCEINLINE explicit operator Matrix3() const noexcept;
+	FORCEINLINE explicit operator Matrix4() const noexcept;
+	FORCEINLINE Quaternion operator~() const noexcept;
+	FORCEINLINE Quaternion operator*(const Quaternion &rhs) const noexcept;
+	FORCEINLINE Vector3 operator*(const Vector3 &rhs) const noexcept;
+	FORCEINLINE Quaternion &operator=(const Quaternion &rhs) noexcept;
+	FORCEINLINE Quaternion &operator*=(const Quaternion &rhs) noexcept;
+	FORCEINLINE DX::XMVECTOR *operator&() noexcept;
+	friend BoolVector operator==(const Quaternion &, const Quaternion &) noexcept;
+	friend BoolVector operator!=(const Quaternion &, const Quaternion &) noexcept;
+	friend Quaternion normalize(const Quaternion &q) noexcept;
+	friend Quaternion inverse(const Quaternion &q) noexcept;
+	friend Quaternion slerp(const Quaternion &lhs, const Quaternion &rhs, float t) noexcept;
+	friend Quaternion lerp(const Quaternion &lhs, const Quaternion &rhs, float t) noexcept;
+	friend Quaternion conjugate(const Quaternion &q) noexcept;
+	friend std::ostream &operator<<(std::ostream &os, const Quaternion &q) noexcept;
 public:
 	union {
 		DX::XMVECTOR _vec;
@@ -416,13 +418,50 @@ public:
 	};
 };
 
+class AxisAlignedBox {
+public:
+	friend class Frustum;
+	static constexpr size_t kCornerCount = 8;
+	FORCEINLINE AxisAlignedBox() noexcept;
+	FORCEINLINE AxisAlignedBox(const Vector3 &min, const Vector3 &max) noexcept;
+	FORCEINLINE AxisAlignedBox(const AxisAlignedBox &) noexcept = default;
+	FORCEINLINE AxisAlignedBox &operator=(const AxisAlignedBox &) noexcept = default;
+	FORCEINLINE AxisAlignedBox(AxisAlignedBox &&) noexcept = default;
+	FORCEINLINE AxisAlignedBox &operator=(AxisAlignedBox &&) noexcept = default;
+	FORCEINLINE AxisAlignedBox transform(const Matrix4 &trans) const noexcept;
+	FORCEINLINE AxisAlignedBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
+	FORCEINLINE static AxisAlignedBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
+	FORCEINLINE static AxisAlignedBox createFromPoints(size_t count, const float3 *points, size_t stride) noexcept;
+	FORCEINLINE static AxisAlignedBox createMerged(const AxisAlignedBox &b1, const AxisAlignedBox &b2) noexcept;
+private:
+	DX::BoundingBox _boundingBox;
+};
 
-class Transfrom {
+class Frustum {
 public:
-public:
-	Vector3    scale;
-	Vector3    translation;
-	Quaternion rotate;
+	static constexpr size_t kCornerCount = 8;
+	FORCEINLINE Frustum() noexcept = default;
+	FORCEINLINE Frustum(const Frustum &) noexcept = default;
+	FORCEINLINE Frustum &operator=(const Frustum &) noexcept = default;
+	FORCEINLINE Frustum(Frustum &&) noexcept = default;
+	FORCEINLINE Frustum &operator=(Frustum &&) noexcept = default;
+	FORCEINLINE Frustum(const float3 &origin, const float4 &orientation, 
+		float rightSlope, float leftSlope, 
+		float topSlope, float bottomSlope, 
+		float near, float far
+	) noexcept;
+	FORCEINLINE Frustum(const Matrix4 &projection, bool rhcoords = false) noexcept;
+	FORCEINLINE Frustum transform(const Matrix4 &trans) const noexcept;
+	FORCEINLINE Frustum transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
+	FORCEINLINE void getPlanes(Vector4 &nearPlane, Vector4 &farPlane, 
+		Vector4 &rightPlane, Vector4 &leftPlane, 
+		Vector4 topPlane, Vector4 &bottomPlane
+	) const noexcept;
+	FORCEINLINE DX::ContainmentType contains(_In_ const AxisAlignedBox &box) const noexcept;
+private:
+	DX::BoundingFrustum _boundingFrustum;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -459,7 +498,6 @@ FORCEINLINE BoolVector::BoolVector(DX::FXMVECTOR vec) noexcept : _vec(vec) {
 FORCEINLINE BoolVector::operator DX::XMVECTOR() const {
 	return _vec;
 }
-
 #endif
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Matrix3x3
@@ -469,10 +507,14 @@ FORCEINLINE BoolVector::operator DX::XMVECTOR() const {
 #include "Math/implement/Matrix4.inc"
 /// Quaternion
 #include "Math/implement/Quaternion.inc"
-
+/// BoundingBox
+#include "Math/implement/BoundingBox.inc"
+/// BoundingFrustum 
+#include "Math/implement/BoundingFrustum.inc"
 }
 
 
 static_assert(sizeof(Math::float2) == sizeof(float)*2);
 static_assert(sizeof(Math::float3) == sizeof(float)*3);
 static_assert(sizeof(Math::float4) == sizeof(float)*4);
+
