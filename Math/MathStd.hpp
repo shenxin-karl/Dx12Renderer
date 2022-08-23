@@ -451,7 +451,7 @@ public:
 		float topSlope, float bottomSlope, 
 		float near, float far
 	) noexcept;
-	FORCEINLINE Frustum(const Matrix4 &projection, bool rhcoords = false) noexcept;
+	FORCEINLINE Frustum(const Matrix4 &projection) noexcept;
 	FORCEINLINE Frustum transform(const Matrix4 &trans) const noexcept;
 	FORCEINLINE Frustum transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;

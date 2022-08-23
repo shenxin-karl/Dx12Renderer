@@ -195,4 +195,28 @@ D3D12_RESOURCE_STATES ResourceStateTracker::ResourceState::getSubresourceState(U
 	return state;
 }
 
+void GlobalResourceState::lock() {
+	_mutex.lock();
+	_isLocked = true;
+}
+
+void GlobalResourceState::unlock() {
+	_mutex.unlock();
+	_isLocked = false;
+}
+
+void GlobalResourceState::addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state) {
+	if (pResource != nullptr) {
+		std::lock_guard lock(_mutex);
+		_resourceState[pResource].setSubresourceState(D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, state);
+	}
+}
+
+void GlobalResourceState::removeGlobalResourceState(ID3D12Resource *pResource) {
+	if (pResource != nullptr) {
+		std::lock_guard lock(_mutex);
+		_resourceState.erase(pResource);
+	}
+}
+
 }

@@ -56,8 +56,11 @@ public:
 	}
 
 	friend void operator>>(std::shared_ptr<T> pOther, PassResourcePtr &rhs) {
+		assert(pOther != nullptr);
 		rhs._bindFunc = [&, ptr = std::move(pOther)]() mutable {
 			rhs._pResource = std::move(ptr);
+			if (rhs._pResource == nullptr)
+				assert(false);
 		};
 	}
 

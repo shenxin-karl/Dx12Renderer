@@ -7,8 +7,8 @@ FORCEINLINE Frustum::Frustum(const float3 &origin, const float4 &orientation, fl
 {
 }
 
-FORCEINLINE Frustum::Frustum(const Matrix4 &projection, bool rhcoords) noexcept
-	: _boundingFrustum(static_cast<DX::XMMATRIX>(projection), rhcoords)
+FORCEINLINE Frustum::Frustum(const Matrix4 &projection) noexcept
+	: _boundingFrustum(static_cast<DX::XMMATRIX>(projection))
 {
 }
 

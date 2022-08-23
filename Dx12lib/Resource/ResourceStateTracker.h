@@ -2,6 +2,7 @@
 #include <Dx12lib/dx12libStd.h>
 
 namespace dx12lib {
+
 	
 class ResourceStateTracker {
 protected:
@@ -25,6 +26,7 @@ public:
 	static void addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state);
 	static void removeGlobalResourceState(ID3D12Resource *pResource);
 private:
+	friend class GlobalResourceState;
 	struct ResourceState {
 		explicit ResourceState(D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON);
 		void setSubresourceState(UINT subresource, D3D12_RESOURCE_STATES state);
@@ -43,6 +45,21 @@ private:
 	static inline bool              _isLocked = false;
 	static inline std::mutex        _globalMutex;
 	static inline ResourceStateMap  _globalResourceState;
+};
+
+
+class GlobalResourceState {
+public:
+	void lock();
+	void unlock();
+	void addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state);
+	void removeGlobalResourceState(ID3D12Resource *pResource);
+private:
+	using ResourceState = ResourceStateTracker::ResourceState;
+	using ResourceStateMap = ResourceStateTracker::ResourceStateMap;
+	bool              _isLocked = false;
+	std::mutex        _mutex;
+	ResourceStateMap  _resourceState;
 };
 
 }
