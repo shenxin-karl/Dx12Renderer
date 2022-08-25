@@ -1,8 +1,10 @@
 #pragma once
 #include <Dx12lib/Context/CommonContext.h>
+#include <Math/MathStd.hpp>
 
 namespace rg {
 
+using namespace Math;
 struct TechniqueFlag;
 class Technique;
 class Drawable;

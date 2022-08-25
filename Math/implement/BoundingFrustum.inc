@@ -33,7 +33,7 @@ FORCEINLINE std::array<float3, Frustum::kCornerCount> Frustum::getCorners() cons
 
 FORCEINLINE void Frustum::getPlanes(Vector4 &nearPlane, Vector4 &farPlane,
 	Vector4 &rightPlane, Vector4 &leftPlane,
-	Vector4 topPlane, Vector4 &bottomPlane) const noexcept
+	Vector4 &topPlane, Vector4 &bottomPlane) const noexcept
 {
 	_boundingFrustum.GetPlanes(&nearPlane, &farPlane,
 		&rightPlane, &leftPlane,

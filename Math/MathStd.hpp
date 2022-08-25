@@ -422,7 +422,7 @@ class AxisAlignedBox {
 public:
 	friend class Frustum;
 	static constexpr size_t kCornerCount = 8;
-	FORCEINLINE AxisAlignedBox() noexcept;
+	FORCEINLINE AxisAlignedBox() noexcept = default;
 	FORCEINLINE AxisAlignedBox(const Vector3 &min, const Vector3 &max) noexcept;
 	FORCEINLINE AxisAlignedBox(const AxisAlignedBox &) noexcept = default;
 	FORCEINLINE AxisAlignedBox &operator=(const AxisAlignedBox &) noexcept = default;
@@ -457,7 +457,7 @@ public:
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getPlanes(Vector4 &nearPlane, Vector4 &farPlane, 
 		Vector4 &rightPlane, Vector4 &leftPlane, 
-		Vector4 topPlane, Vector4 &bottomPlane
+		Vector4 &topPlane, Vector4 &bottomPlane
 	) const noexcept;
 	FORCEINLINE DX::ContainmentType contains(_In_ const AxisAlignedBox &box) const noexcept;
 private:

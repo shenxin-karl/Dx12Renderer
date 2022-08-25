@@ -11,7 +11,7 @@ namespace rg {
 
 class BindingPass : public Pass {
 public:
-	using Pass::Pass;
+	explicit BindingPass(const std::string &passName);
 	virtual void link(dx12lib::ICommonContext &commonCtx) const;
 	void addBind(std::shared_ptr<Bindable> pBindable);
 	void bindAll(dx12lib::IGraphicsContext &graphicsCtx) const;

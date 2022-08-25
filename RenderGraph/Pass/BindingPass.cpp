@@ -3,6 +3,13 @@
 
 namespace rg {
 
+BindingPass::BindingPass(const std::string &passName)
+: Pass(passName)
+, pRenderTarget(this, "RenderTarget")
+, pDepthStencil(this, "DepthStencil")
+{
+}
+
 void BindingPass::link(dx12lib::ICommonContext &commonCtx) const {
 	pRenderTarget.link(commonCtx);
 	pDepthStencil.link(commonCtx);

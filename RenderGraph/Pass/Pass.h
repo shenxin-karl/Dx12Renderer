@@ -5,6 +5,7 @@
 
 namespace rg {
 
+class PassResourceBase;
 class Pass : public NonCopyable {
 public:
 	explicit Pass(const std::string &passName);
@@ -13,7 +14,11 @@ public:
 	void setPassName(const std::string &passName);
 	const std::string &getPassName() const;
 private:
+	friend class PassResourceBase;
+	void addPassResource(PassResourceBase *pResource);
+private:
 	std::string _passName;
+	std::vector<PassResourceBase *> _passResource;
 };
 
 }

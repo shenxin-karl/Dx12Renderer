@@ -1,12 +1,26 @@
 #pragma once
 #include <cassert>
 #include <functional>
+#include <RenderGraph/Pass/Pass.h>
 
 namespace rg {
 
-template<typename T>
-class PassResourcePtr {
+class Pass;
+class PassResourceBase {
 public:
+	PassResourceBase(Pass *pass, std::string resourceName) : _pPass(pass), _resourceName(std::move(resourceName)) {
+		_pPass->addPassResource(this);
+	}
+protected:
+	Pass *_pPass;
+	std::string _resourceName;
+};
+
+template<typename T>
+class PassResourcePtr : public PassResourceBase {
+public:
+	using PassResourceBase::PassResourceBase;
+
 	template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
 	friend void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs);
 
