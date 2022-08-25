@@ -1,7 +1,7 @@
 #include "GraphicsPSOBindable.h"
 #include "Dx12lib/Pipeline/PipelineStateObject.h"
 
-namespace rg {
+namespace rgph {
 
 std::shared_ptr<GraphicsPSOBindable> GraphicsPSOBindable::make(std::shared_ptr<dx12lib::GraphicsPSO> pso,
 	const std::source_location &sourceLocation)

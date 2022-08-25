@@ -1,7 +1,7 @@
 #pragma once
 #include <RenderGraph/Pass/BindingPass.h>
 
-namespace rg {
+namespace rgph {
 
 class PresentPass : public BindingPass {
 public:

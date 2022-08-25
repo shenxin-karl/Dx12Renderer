@@ -4,23 +4,18 @@
 #include "Dx12lib/Buffer/IndexBuffer.h"
 #include "Dx12lib/Buffer/VertexBuffer.h"
 
-namespace rg {
-
-void Drawable::bind(dx12lib::IGraphicsContext &graphicsCtx) const {
-	assert(_topology != D3D_PRIMITIVE_TOPOLOGY_UNDEFINED);
-	graphicsCtx.setPrimitiveTopology(_topology);
-	for (size_t i = 0; i < std::size(_pVertexBuffers); ++i) {
-		if (_pVertexBuffers[i] != nullptr)
-			graphicsCtx.setVertexBuffer(_pVertexBuffers[i], static_cast<UINT>(i));
-	}
-
-	if (_pIndexBuffer != nullptr)
-		graphicsCtx.setIndexBuffer(_pIndexBuffer);
-}
+namespace rgph {
 
 void Drawable::submit(const TechniqueFlag &techniqueFlag) const {
-	for (auto &pTechnique : _techniques)
-		pTechnique->submit(*this, techniqueFlag);
+	assert(_pGeometry != nullptr);
+	assert(_pTransformCBuf != nullptr);
+	for (auto &pTechnique : _techniques) {
+		pTechnique->submit(
+			techniqueFlag,
+			_pGeometry.get(),
+			_pTransformCBuf.get()
+		);
+	}
 }
 
 bool Drawable::addTechnique(std::shared_ptr<Technique> pTechnique) {
@@ -64,62 +59,27 @@ void Drawable::setTechniqueActive(const TechniqueType &techniqueType, bool bActi
 	}
 }
 
-void Drawable::setDrawArgs(const DrawArgs &drawArgs) {
-	_drawArgs = drawArgs;
-}
-
-void Drawable::setTopology(D3D_PRIMITIVE_TOPOLOGY topology) {
-	_topology = topology;
-}
-
-void Drawable::setIndexBuffer(std::shared_ptr<dx12lib::IndexBuffer> pIndexBuffer) {
-	_pIndexBuffer = std::move(pIndexBuffer);
-}
-
-void Drawable::setVertexBuffer(std::shared_ptr<dx12lib::VertexBuffer> pVertexBuffer, size_t slot) {
-	assert(slot < std::size(_pVertexBuffers));
-	if (slot >= std::size(_pVertexBuffers))
-		throw std::out_of_range(std::format("Drawable::setVertexBuffer {} out of range", slot));
-
-	_pVertexBuffers[slot] = std::move(pVertexBuffer);
-}
-
-const DrawArgs & Drawable::getDrawArgs() const {
-	return _drawArgs;
-}
-
-D3D_PRIMITIVE_TOPOLOGY Drawable::getTopology() const {
-	return _topology;
-}
-
-std::shared_ptr<dx12lib::IndexBuffer> Drawable::getIndexBuffer() const {
-	return _pIndexBuffer;
-}
-
-std::shared_ptr<dx12lib::VertexBuffer> Drawable::getVertexBuffer(size_t slot) const {
-	if (slot >= std::size(_pVertexBuffers))
-		throw std::out_of_range(std::format("Drawable::getVertexBuffer {} out of range", slot));
-	return _pVertexBuffers[slot];
-}
-
-void Drawable::genDrawArgs() {
-	size_t vertexCount = 0;
-	for (size_t i = 0; i < std::size(_pVertexBuffers); ++i) {
-		if (vertexCount == 0 && _pVertexBuffers[i] != nullptr) {
-			vertexCount = _pVertexBuffers[i]->getVertexCount();
-		} else if (vertexCount != 0) {
-			assert(vertexCount == _pVertexBuffers[i]->getVertexCount());
-		}
-	}
-
-	_drawArgs.vertexCount = vertexCount;
-	if (_pIndexBuffer != nullptr)
-		_drawArgs.indexCount = _pIndexBuffer->getIndexCount();
-}
-
 void Drawable::clearTechnique() {
 	_techniques.clear();
 	_techniqueFlag.reset();
+}
+
+std::shared_ptr<Geometry> Drawable::getGeometry() const {
+	return _pGeometry;
+}
+
+std::shared_ptr<TransformCBuffer> Drawable::getTransformCBuffer() const {
+	return _pTransformCBuf;
+}
+
+void Drawable::setGeometry(std::shared_ptr<Geometry> pGeometry) {
+	assert(pGeometry != nullptr);
+	_pGeometry = std::move(pGeometry);
+}
+
+void Drawable::setGeometry(std::shared_ptr<TransformCBuffer> pTransformCBuf) {
+	assert(pTransformCBuf != nullptr);
+	_pTransformCBuf = std::move(pTransformCBuf);
 }
 
 }

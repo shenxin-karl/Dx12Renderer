@@ -4,7 +4,7 @@
 
 #include "Dx12lib/Texture/DepthStencilTexture.h"
 
-namespace rg {
+namespace rgph {
 
 class ClearRtPass : public BindingPass {
 public:

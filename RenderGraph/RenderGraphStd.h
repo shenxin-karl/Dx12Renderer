@@ -2,7 +2,7 @@
 #include <Dx12lib/Context/CommonContext.h>
 #include <Math/MathStd.hpp>
 
-namespace rg {
+namespace rgph {
 
 using namespace Math;
 struct TechniqueFlag;
@@ -16,6 +16,8 @@ class Job;
 class GraphicsPSOBindable;
 struct TechniqueType;
 struct DrawArgs;
+class Geometry;
+class TransformCBuffer;
 
 class NonCopyable {
 public:

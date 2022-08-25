@@ -1,6 +1,6 @@
 #include "ConstantBufferBindable.h"
 
-namespace rg {
+namespace rgph {
 
 std::shared_ptr<ConstantBufferBindable> ConstantBufferBindable::make(const dx12lib::ShaderRegister &sr,
 	std::shared_ptr<dx12lib::IConstantBuffer> pConstantBuffer, const std::source_location &sourceLocation)

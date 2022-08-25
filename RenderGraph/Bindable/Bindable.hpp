@@ -3,7 +3,7 @@
 #include <Dx12lib/Context/ContextProxy.hpp>
 #include <source_location>
 
-namespace rg {
+namespace rgph {
 
 enum class BindableType {
 	Unknown = 0,

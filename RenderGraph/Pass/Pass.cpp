@@ -1,6 +1,6 @@
 #include "Pass.h"
 
-namespace rg {
+namespace rgph {
 
 Pass::Pass(const std::string &passName) : _passName(passName) {
 

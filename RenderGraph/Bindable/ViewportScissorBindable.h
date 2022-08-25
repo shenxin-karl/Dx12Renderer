@@ -4,7 +4,7 @@
 
 #include "Dx12lib/Context/CommonContext.h"
 
-namespace rg {
+namespace rgph {
 
 class ViewportScissorBindable : public Bindable {
 public:

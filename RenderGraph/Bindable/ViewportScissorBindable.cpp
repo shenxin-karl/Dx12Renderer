@@ -1,6 +1,6 @@
 #include "ViewportScissorBindable.h"
 
-namespace rg {
+namespace rgph {
 
 std::shared_ptr<ViewportScissorBindable> ViewportScissorBindable::make(const D3D12_VIEWPORT &viewport,
 	const D3D12_RECT &scissorRect, 

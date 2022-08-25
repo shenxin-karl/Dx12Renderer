@@ -2,7 +2,7 @@
 #include <RenderGraph/Pass/BindingPass.h>
 #include <RenderGraph/Pass/Job.h>
 
-namespace rg {
+namespace rgph {
 
 class SubPass {
 public:

@@ -1,7 +1,7 @@
 #pragma once
 #include <bitset>
 
-namespace rg {
+namespace rgph {
 
 // TechniqueType
 // todo: 为什么不直接使用 size_t, 因为这样是类型安全的

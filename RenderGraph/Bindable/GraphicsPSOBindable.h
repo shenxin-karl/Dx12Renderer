@@ -3,7 +3,7 @@
 #include <string>
 #include "Dx12lib/Context/CommonContext.h"
 
-namespace rg {
+namespace rgph {
 
 class Pass;
 class GraphicsPSOBindable : public Bindable {

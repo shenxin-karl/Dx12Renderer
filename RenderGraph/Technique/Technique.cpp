@@ -1,6 +1,6 @@
 #include "Technique.h"
 
-namespace rg {
+namespace rgph {
 
 Technique::Technique(const std::string &techniqueName, TechniqueType type, bool active)
 : _active(active), _techniqueName(techniqueName)
@@ -12,12 +12,15 @@ void Technique::addStep(std::unique_ptr<Step> pStep) {
 	_steps.push_back(std::move(pStep));
 }
 
-void Technique::submit(const Drawable &drawable, const TechniqueFlag &techniqueFlag) const {
+void Technique::submit(const TechniqueFlag &techniqueFlag, 
+	const Geometry *pGeometry, 
+	const TransformCBuffer *pTransformCBuffer) const
+{
 	if (!isActive() || !techniqueFlag.test(_techniqueType))
 		return;
 
 	for (auto &pStep : _steps)
-		pStep->submit(drawable);
+		pStep->submit(pGeometry, pTransformCBuffer);
 }
 
 void Technique::setActive(bool bActive) {

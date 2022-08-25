@@ -4,7 +4,7 @@
 #include <Dx12lib/Texture/SamplerTexture.h>
 #include <Dx12lib/Pipeline/ShaderRegister.hpp>
 
-namespace rg {
+namespace rgph {
 
 class SamplerTextureBindable : public Bindable {
 public:

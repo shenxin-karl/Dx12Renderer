@@ -1,7 +1,7 @@
 #include "BindingPass.h"
 #include "RenderGraph/Bindable/Bindable.hpp"
 
-namespace rg {
+namespace rgph {
 
 BindingPass::BindingPass(const std::string &passName)
 : Pass(passName)

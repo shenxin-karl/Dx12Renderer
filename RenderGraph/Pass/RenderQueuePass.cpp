@@ -2,7 +2,7 @@
 #include "RenderGraph/Bindable/Bindable.hpp"
 #include "RenderGraph/Bindable/GraphicsPSOBindable.h"
 
-namespace rg {
+namespace rgph {
 
 SubPass::SubPass(RenderQueuePass *pRenderQueuePass, std::shared_ptr<GraphicsPSOBindable> pGraphicsBindable)
 : _pRenderQueuePass(pRenderQueuePass), _pGraphicsPSOBindable(std::move(pGraphicsBindable))

@@ -4,7 +4,7 @@
 #include <Dx12lib/Resource/IResource.h>
 #include <Dx12lib/Pipeline/ShaderRegister.hpp>
 
-namespace rg {
+namespace rgph {
 
 class ConstantBufferBindable : public Bindable {
 public:

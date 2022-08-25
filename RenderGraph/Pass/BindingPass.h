@@ -7,7 +7,7 @@
 #include <Dx12lib/Texture/DepthStencilTexture.h>
 #include <Dx12lib/Texture/RenderTargetTexture.h>
 
-namespace rg {
+namespace rgph {
 
 class BindingPass : public Pass {
 public:

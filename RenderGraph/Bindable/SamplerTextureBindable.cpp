@@ -1,6 +1,6 @@
 #include "SamplerTextureBindable.h"
 
-namespace rg {
+namespace rgph {
 
 std::shared_ptr<SamplerTextureBindable> SamplerTextureBindable::make(dx12lib::ShaderRegister shaderRegister,
 	std::shared_ptr<dx12lib::IShaderResource> pShaderResource, 

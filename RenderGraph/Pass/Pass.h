@@ -3,7 +3,7 @@
 #include <RenderGraph/RenderGraphStd.h>
 #include <Dx12lib/Context/ContextProxy.hpp>
 
-namespace rg {
+namespace rgph {
 
 class PassResourceBase;
 class Pass : public NonCopyable {

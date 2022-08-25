@@ -3,7 +3,7 @@
 #include <functional>
 #include <RenderGraph/Pass/Pass.h>
 
-namespace rg {
+namespace rgph {
 
 class Pass;
 class PassResourceBase {
