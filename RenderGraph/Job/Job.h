@@ -12,7 +12,7 @@ class TransformCBuffer;
 struct Job {
 	Job(const Step *pStep, const Geometry *pGeometry, const TransformCBuffer *pTransformCBuffer);
 	void execute(dx12lib::IGraphicsContext &graphicsCtx, 
-		const VertexInputSlot &vertexInputSlot,
+		const VertexInputSlot &vertexInputSlots,
 		const dx12lib::ShaderRegister &transformCBufferReg
 	) const;
 public:

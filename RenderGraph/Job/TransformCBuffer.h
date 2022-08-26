@@ -18,7 +18,7 @@ public:
 	const TransformStore &getTransformStore() const;
 	void setTransformStore(const TransformStore &store);
 	void setWorldAABB(const AxisAlignedBox &box);
-	void setTransformCBuf(FRConstantBufferPtr<TransformCBuffer> pTransformCBuf);
+	void setTransformCBuf(FRConstantBufferPtr<TransformStore> pTransformCBuf);
 	void bind(dx12lib::IGraphicsContext &graphicsCtx, const dx12lib::ShaderRegister &shaderRegister) const;
 protected:
 	AxisAlignedBox _worldAABB;

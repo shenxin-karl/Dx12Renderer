@@ -1,53 +1,9 @@
 #include "RenderQueuePass.h"
 #include "RenderGraph/Bindable/Bindable.hpp"
 #include "RenderGraph/Bindable/GraphicsPSOBindable.h"
+#include "RenderGraph/Pass/SubPass.h"
 
 namespace rgph {
-
-SubPass::SubPass(RenderQueuePass *pRenderQueuePass, std::shared_ptr<GraphicsPSOBindable> pGraphicsBindable)
-: _pRenderQueuePass(pRenderQueuePass), _pGraphicsPSOBindable(std::move(pGraphicsBindable))
-{
-}
-
-const std::string & SubPass::getSubPassName() const {
-	return _pGraphicsPSOBindable->getPSOName();
-}
-
-void SubPass::addBindable(std::shared_ptr<Bindable> pBindable) {
-	_bindables.push_back(std::move(pBindable));
-}
-
-std::shared_ptr<Bindable> SubPass::getBindableByType(BindableType bindableType) const {
-	for (auto &pBindable : _bindables) {
-		if (pBindable->getBindableType() == bindableType)
-			return pBindable;
-	}
-	return nullptr;
-}
-
-void SubPass::accept(const Job &job) {
-	_jobs.push_back(job);
-}
-
-void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx) const {
-	if (_jobs.empty())
-		return;
-
-	_pGraphicsPSOBindable->bind(graphicsCtx);
-	for (auto &pBindable : _bindables)
-		pBindable->bind(graphicsCtx);
-
-	for (auto &job : _jobs)
-		job.execute(graphicsCtx);
-}
-
-void SubPass::reset() {
-	_jobs.clear();
-}
-
-size_t SubPass::getJobCount() const {
-	return _jobs.size();
-}
 
 std::shared_ptr<SubPass> RenderQueuePass::getSubPassByName(const std::string &subPassName) const {
 	for (auto &pSubPass : _subPasses) {
@@ -57,15 +13,18 @@ std::shared_ptr<SubPass> RenderQueuePass::getSubPassByName(const std::string &su
 	return nullptr;
 }
 
-std::shared_ptr<SubPass> RenderQueuePass::getOrCreateSubPass(std::shared_ptr<GraphicsPSOBindable> pGraphicsPSOBindable) {
-	auto subPassName = pGraphicsPSOBindable->getPSOName();
-	for (auto &pSubPass : _subPasses) {
-		if (pSubPass->getSubPassName() == subPassName)
-			return pSubPass;
+void RenderQueuePass::addSubPass(std::shared_ptr<SubPass> pSubPass) {
+	assert(pSubPass == nullptr);
+	const std::string &subPassName = pSubPass->getSubPassName();
+	for (auto &subPassPtr : _subPasses) {
+		if (subPassPtr->getSubPassName() == subPassName) {
+			assert(false);
+			return;
+		}
 	}
-	_subPasses.push_back(std::make_shared<SubPass>(this, std::move(pGraphicsPSOBindable)));
-	return _subPasses.back();
+	_subPasses.push_back(std::move(pSubPass));
 }
+
 
 void RenderQueuePass::execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const {
 	bool hasJob = true;
@@ -77,14 +36,22 @@ void RenderQueuePass::execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const 
 
 	bindAll(*pGraphicsCtx);
 	bindRenderTarget(*pGraphicsCtx);
-	for (auto &pSubPass : _subPasses)
+	for (auto &pSubPass : _subPasses) {
+		auto passCBufferShaderRegister = pSubPass->getPassCBufferShaderRegister();
+		if (_pPassCBuffer == nullptr && passCBufferShaderRegister.slot && !passCBufferShaderRegister.slot.isSampler())
+			pGraphicsCtx->setConstantBuffer(passCBufferShaderRegister, _pPassCBuffer);
 		pSubPass->execute(*pGraphicsCtx);
+	}
 }
 
 void RenderQueuePass::reset() {
 	BindingPass::reset();
 	for (auto &pSubPass : _subPasses)
 		pSubPass->reset();
+}
+
+void RenderQueuePass::setPassCBuffer(std::shared_ptr<dx12lib::IConstantBuffer> pCBuffer) {
+	_pPassCBuffer = std::move(pCBuffer);
 }
 
 }

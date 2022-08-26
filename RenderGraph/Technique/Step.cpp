@@ -3,6 +3,7 @@
 #include "RenderGraph/Drawable/Drawable.h"
 #include "RenderGraph/Job/Job.h"
 #include "RenderGraph/Pass/RenderQueuePass.h"
+#include "RenderGraph/Pass/SubPass.h"
 
 namespace rgph {
 

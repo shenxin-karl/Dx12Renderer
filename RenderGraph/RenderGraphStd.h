@@ -12,7 +12,7 @@ class Bindable;
 class Step;
 class SubPass;
 class RenderQueuePass;
-class Job;
+struct Job;
 class GraphicsPSOBindable;
 struct TechniqueType;
 struct DrawArgs;

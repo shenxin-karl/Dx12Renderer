@@ -86,6 +86,10 @@ public:
 		return static_cast<D3D12_DESCRIPTOR_RANGE_TYPE>(-1);
 	}
 
+	bool valid() const noexcept {
+		return isCBV() || isSRV() || isUAV() || isSampler();
+	}
+
 	constexpr friend bool operator==(const RegisterSlot &lhs, const RegisterSlot &rhs) noexcept {
 		return lhs.slot == rhs.slot;
 	}
@@ -102,6 +106,10 @@ public:
 
 	constexpr explicit operator size_t() const {
 		return static_cast<size_t>(slot);
+	}
+
+	explicit operator bool() const {
+		return valid();
 	}
 public:
 	Slot slot;

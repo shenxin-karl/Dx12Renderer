@@ -12,7 +12,7 @@ void Geometry::bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlo
 			continue;
 
 		assert(_pVertexBufferList[slot] != nullptr);
-		graphicsCtx.setVertexBuffer(_pVertexBufferList[slot], slot);
+		graphicsCtx.setVertexBuffer(_pVertexBufferList[slot], static_cast<UINT>(slot));
 	}
 }
 

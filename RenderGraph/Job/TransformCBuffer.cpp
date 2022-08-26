@@ -32,7 +32,7 @@ void TransformCBuffer::setWorldAABB(const AxisAlignedBox &box) {
 	_worldAABB = box;
 }
 
-void TransformCBuffer::setTransformCBuf(FRConstantBufferPtr<TransformCBuffer> pTransformCBuf) {
+void TransformCBuffer::setTransformCBuf(FRConstantBufferPtr<TransformStore> pTransformCBuf) {
 	assert(pTransformCBuf != nullptr);
 	_pTransformCBuf = std::move(pTransformCBuf);
 }
