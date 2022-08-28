@@ -14,19 +14,19 @@ struct TechniqueType {
 	constexpr TechniqueType &operator=(TechniqueType &&) = default;
 	constexpr ~TechniqueType() = default;
 
-	operator size_t() const noexcept {
+	constexpr operator size_t() const noexcept {
 		return _techniqueType;
 	}
 
-	friend TechniqueType operator&(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+	constexpr friend TechniqueType operator&(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
 		return TechniqueType{ lhs._techniqueType & rhs._techniqueType };
 	}
 
-	friend TechniqueType operator|(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+	constexpr friend TechniqueType operator|(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
 		return TechniqueType{ lhs._techniqueType | rhs._techniqueType };
 	}
 
-	friend TechniqueType operator^(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
+	constexpr friend TechniqueType operator^(const TechniqueType &lhs, const TechniqueType &rhs) noexcept {
 		return TechniqueType{ lhs._techniqueType ^ rhs._techniqueType };
 	}
 
