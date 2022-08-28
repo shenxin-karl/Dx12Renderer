@@ -1,20 +1,25 @@
 #include <Dx12lib/Buffer/DefaultBuffer.h>
 #include <Dx12lib/Resource/ResourceStateTracker.h>
+#include "Dx12lib/Device/Device.h"
 
 namespace dx12lib {
 
-DefaultBuffer::DefaultBuffer(ID3D12Device *pDevice, 
-	ID3D12GraphicsCommandList *pCmdList, 
-	const void *pData, 
-	size_t sizeInByte, 
+DefaultBuffer::DefaultBuffer(std::weak_ptr<Device> pDevice,
+	ID3D12GraphicsCommandList *pCmdList,
+	const void *pData,
+	size_t sizeInByte,
 	D3D12_RESOURCE_FLAGS flags,
 	D3D12_RESOURCE_STATES finalState)
+: _pDevice(pDevice) 
 {
-	assert(pDevice != nullptr && "createDefaultBuffer pDevice is nullptr");
+
+	auto pSharedDevice = pDevice.lock();
+	auto pD3DDevice = pSharedDevice->getD3DDevice();
+	assert(pD3DDevice != nullptr && "createDefaultBuffer pDevice is nullptr");
 	bool parameterCorrect = (pCmdList == nullptr && pData == nullptr) || pCmdList != nullptr;
 	assert(parameterCorrect && "createDefaultBuffer pCmdList is nullptr");
 
-	ThrowIfFailed(pDevice->CreateCommittedResource(
+	ThrowIfFailed(pD3DDevice->CreateCommittedResource(
 		RVPtr(CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)),
 		D3D12_HEAP_FLAG_NONE,
 		RVPtr(CD3DX12_RESOURCE_DESC::Buffer(sizeInByte, flags)),
@@ -25,7 +30,7 @@ DefaultBuffer::DefaultBuffer(ID3D12Device *pDevice,
 
 	if (pData != nullptr) {
 		// create upload heap
-		ThrowIfFailed(pDevice->CreateCommittedResource(
+		ThrowIfFailed(pD3DDevice->CreateCommittedResource(
 			RVPtr(CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD)),
 			D3D12_HEAP_FLAG_NONE,
 			RVPtr(CD3DX12_RESOURCE_DESC::Buffer(sizeInByte)),
@@ -62,12 +67,17 @@ DefaultBuffer::DefaultBuffer(ID3D12Device *pDevice,
 			finalState
 		)));
 	}
-	ResourceStateTracker::addGlobalResourceState(_pDefaultResource.Get(), finalState);
+
+	if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+		pGlobalResourceState->addGlobalResourceState(_pDefaultResource.Get(), finalState);
 }
 
 
 DefaultBuffer::~DefaultBuffer() {
-	ResourceStateTracker::removeGlobalResourceState(_pDefaultResource.Get());
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pDefaultResource.Get());
+	}
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS DefaultBuffer::getAddress() const {

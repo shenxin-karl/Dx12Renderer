@@ -17,7 +17,8 @@ class GraphicsPSOBindable;
 struct TechniqueType;
 struct DrawArgs;
 class Geometry;
-class TransformCBuffer;
+class TransformCBufferPtr;
+class RenderGraph;
 
 class NonCopyable {
 public:
@@ -27,15 +28,10 @@ public:
 	virtual ~NonCopyable() = default;
 };
 
-struct IDrawable : public NonCopyable {
+struct IDrawable : virtual public NonCopyable {
 	IDrawable() = default;
 	~IDrawable() override = default;
-	virtual void bind(dx12lib::IGraphicsContext &graphicsCtx) const = 0;
 	virtual void submit(const TechniqueFlag &techniqueFlag) const = 0;
-	virtual bool addTechnique(std::shared_ptr<Technique> pTechnique) = 0;
-	virtual bool hasTechnique(const TechniqueType &techniqueType) const = 0;
-	virtual bool removeTechnique(const TechniqueType &techniqueType) = 0;
-	virtual void setTechniqueActive(const TechniqueType &techniqueType, bool bActivate) = 0;
 };
 
 }

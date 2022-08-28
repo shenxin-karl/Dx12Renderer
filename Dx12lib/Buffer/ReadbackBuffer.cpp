@@ -42,10 +42,15 @@ ReadBackBuffer::~ReadBackBuffer() {
 		_pResource->Unmap(0, nullptr);
 		_pMapped = nullptr;
 	}
-	ResourceStateTracker::removeGlobalResourceState(_pResource.Get());
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
 }
 
-ReadBackBuffer::ReadBackBuffer(std::weak_ptr<Device> pDevice, size_t numElements, size_t stride) : _elementStride(stride) {
+ReadBackBuffer::ReadBackBuffer(std::weak_ptr<Device> pDevice, size_t numElements, size_t stride)
+: _elementStride(stride), _pDevice(pDevice)
+{
 	size_t sizeInByte = numElements * stride;
 	ThrowIfFailed(pDevice.lock()->getD3DDevice()->CreateCommittedResource(
 		RVPtr(CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK)),
@@ -55,7 +60,7 @@ ReadBackBuffer::ReadBackBuffer(std::weak_ptr<Device> pDevice, size_t numElements
 		nullptr,
 		IID_PPV_ARGS(&_pResource)
 	));
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+	pDevice.lock()->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
 }
 
 void ReadBackBuffer::setCompleted(bool flag) {

@@ -1,20 +1,10 @@
 #pragma once
 #include <cassert>
 #include <functional>
-#include <RenderGraph/Pass/Pass.h>
+#include <RenderGraph/Pass/PassResourceBase.h>
 
 namespace rgph {
 
-class Pass;
-class PassResourceBase {
-public:
-	PassResourceBase(Pass *pass, std::string resourceName) : _pPass(pass), _resourceName(std::move(resourceName)) {
-		_pPass->addPassResource(this);
-	}
-protected:
-	Pass *_pPass;
-	std::string _resourceName;
-};
 
 template<typename T>
 class PassResourcePtr : public PassResourceBase {
@@ -24,13 +14,10 @@ public:
 	template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
 	friend void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs);
 
-	void link(dx12lib::ICommonContext &commonCtx) const {
-		assert(_refCount == 0);
-		assert(_bindFunc != nullptr);
-		assert(_linked);
-		_bindFunc();
-		assert(_pResource == nullptr);
-		_linked = true;
+	void link(dx12lib::ICommonContext &commonCtx) override {
+		assert(_linkResourceFunc != nullptr);
+		_linkResourceFunc();
+		assert(_pResource != nullptr);
 		commonCtx.transitionBarrier(_pResource, preExecuteState);
 	}
 
@@ -60,43 +47,41 @@ public:
 	}
 
 	friend bool operator==(const PassResourcePtr &pResource, std::nullptr_t) noexcept {
+		return pResource._pResource == nullptr;
+	}
+
+	friend bool operator!=(const PassResourcePtr &pResource, std::nullptr_t) noexcept {
 		return pResource._pResource != nullptr;
 	}
 
 	friend void operator>>(std::function<std::shared_ptr<T>()> callback, PassResourcePtr &rhs) {
-		rhs._bindFunc = [&, cb = std::move(callback)]() {
-			rhs._pResource = std::move(cb());
+		assert(rhs.getResourceSource() == nullptr);
+		assert(callback != nullptr);
+		rhs._linkResourceFunc = [&, cb = std::move(callback)]() {
+			rhs._pResource = cb();
 		};
 	}
 
 	friend void operator>>(std::shared_ptr<T> pOther, PassResourcePtr &rhs) {
 		assert(pOther != nullptr);
-		rhs._bindFunc = [&, ptr = std::move(pOther)]() mutable {
-			rhs._pResource = std::move(ptr);
-			if (rhs._pResource == nullptr)
-				assert(false);
+		rhs._linkResourceFunc = [&, ptr = std::move(pOther)]() mutable {
+			rhs._pResource = ptr;
 		};
 	}
 
-	void reset() {
-		assert(_pResource != nullptr && !_linked);
+	void reset() override {
 		_pResource = nullptr;
 	}
-
 private:
-	friend class BindingPass;
-	void releaseReference() {
-		assert(_refCount > 0);
-		--_refCount;
-		if (_refCount == 0)
-			_pResource = nullptr;
+	bool tryLink() override {
+		if (_linkResourceFunc == nullptr)
+			return false;
+		_linkResourceFunc();
+		return _pResource != nullptr;
 	}
-
 private:
-	int _refCount = 0;
-	mutable bool _linked = false;
 	std::shared_ptr<T> _pResource;
-	std::function<void()> _bindFunc;
+	std::function<void()> _linkResourceFunc;
 public:
 	D3D12_RESOURCE_STATES preExecuteState = D3D12_RESOURCE_STATE_COMMON;
 };
@@ -104,9 +89,11 @@ public:
 
 template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
 void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs) {
-	rhs._bindFunc = [&]() {
+	assert(static_cast<PassResourceBase *>(&lhs) != static_cast<PassResourceBase *>(&rhs));
+	assert(rhs.getResourceSource() == nullptr);
+	rhs.setResourceSource(&lhs);
+	rhs._linkResourceFunc = [&]() {
 		rhs._pResource = lhs._pResource;
-		lhs.releaseReference();
 	};
 }
 

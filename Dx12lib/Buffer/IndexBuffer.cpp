@@ -16,7 +16,7 @@ IndexBuffer::IndexBuffer(std::weak_ptr<Device> pDevice,
 	size_t sizeInByte = numElements * stride;
 	assert(stride != 0 && "invalid index type");
 	_pDefaultBuffer = std::make_unique<DefaultBuffer>(
-		pDevice.lock()->getD3DDevice(), 
+		pDevice, 
 		pCmdList->getD3DCommandList(), 
 		pData, 
 		sizeInByte

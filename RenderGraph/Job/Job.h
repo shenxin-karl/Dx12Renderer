@@ -7,18 +7,18 @@ namespace rgph {
 
 class Step;
 class Geometry;
-class TransformCBuffer;
+class TransformCBufferPtr;
 
 struct Job {
-	Job(const Step *pStep, const Geometry *pGeometry, const TransformCBuffer *pTransformCBuffer);
+	Job(const Step *pStep, const Geometry *pGeometry, const TransformCBufferPtr *pTransformCBuffer);
 	void execute(dx12lib::IGraphicsContext &graphicsCtx, 
-		const VertexInputSlot &vertexInputSlots,
+		const VertexInputSlots &vertexInputSlots,
 		const dx12lib::ShaderRegister &transformCBufferReg
 	) const;
 public:
 	const Step *pStep;
 	const Geometry *pGeometry;
-	const TransformCBuffer *pTransformCBuffer; 
+	const TransformCBufferPtr *pTransformCBuffer; 
 };
 
 }

@@ -1,45 +1,33 @@
 #pragma once
-#include <RenderGraph/Pass/BindingPass.h>
+#include <RenderGraph/Pass/ExecutablePass.h>
 #include <Dx12lib/Texture/RenderTargetTexture.h>
 
 #include "Dx12lib/Texture/DepthStencilTexture.h"
 
 namespace rgph {
 
-class ClearRtPass : public BindingPass {
+class ClearRtPass : public ExecutablePass {
 public:
-	ClearRtPass(const std::string &passName) : BindingPass(passName) {
+	ClearRtPass(const std::string &passName) : ExecutablePass(passName, true, false) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	}
 
-	void link(dx12lib::ICommonContext &commonCtx) const override {
-		assert(pRenderTarget != nullptr);
-		pRenderTarget.link(commonCtx);
-	}
-
-	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
+	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
 		assert(pDepthStencil == nullptr);
-		link(*pGraphicsCtx);
-		pGraphicsCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
+		pDirectCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
 	}
 };
 
-class ClearDsPass : public BindingPass {
+class ClearDsPass : public ExecutablePass {
 public:
-	ClearDsPass(const std::string &passName) : BindingPass(passName) {
+	ClearDsPass(const std::string &passName) : ExecutablePass(passName, false, true) {
 		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}
 
-	void link(dx12lib::ICommonContext &commonCtx) const override {
-		assert(pDepthStencil != nullptr);
-		pDepthStencil.link(commonCtx);
-	}
-
-	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
+	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
 		assert(pRenderTarget == nullptr);
-		link(*pGraphicsCtx);
 		auto clearValue = pDepthStencil->getClearValue();
-		pGraphicsCtx->clearDepthStencil(
+		pDirectCtx->clearDepthStencil(
 			pDepthStencil,
 			clearValue.DepthStencil.Depth,
 			clearValue.DepthStencil.Stencil
@@ -47,19 +35,17 @@ public:
 	}
 };
 
-class ClearPass : public BindingPass {
+class ClearPass : public ExecutablePass {
 public:
-	ClearPass(const std::string &passName) : BindingPass(passName) {
+	ClearPass(const std::string &passName) : ExecutablePass(passName) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}
 
-	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
-		assert(pRenderTarget == nullptr);
-		link(*pGraphicsCtx);
+	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
 		auto clearValue = pDepthStencil->getClearValue();
-		pGraphicsCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
-		pGraphicsCtx->clearDepthStencil(
+		pDirectCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
+		pDirectCtx->clearDepthStencil(
 			pDepthStencil,
 			clearValue.DepthStencil.Depth,
 			clearValue.DepthStencil.Stencil

@@ -6,6 +6,9 @@
 
 namespace dx12lib {
 
+ResourceStateTracker::ResourceStateTracker(std::weak_ptr<Device> pDevice) : _pDevice(pDevice) {
+}
+
 void ResourceStateTracker::resourceBarrier(const D3D12_RESOURCE_BARRIER &expectBarrier) {
 	if (expectBarrier.Type == D3D12_RESOURCE_BARRIER_TYPE_TRANSITION) {
 		const D3D12_RESOURCE_TRANSITION_BARRIER &expectTransition = expectBarrier.Transition;
@@ -14,9 +17,9 @@ void ResourceStateTracker::resourceBarrier(const D3D12_RESOURCE_BARRIER &expectB
 			auto &finalResourceState = iter->second;
 			// 内部的 subResource 不统一
 			if (expectTransition.Subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES &&
-				!finalResourceState._subresourceState.empty())
+				!finalResourceState._subResourceState.empty())
 			{
-				for (auto subresourceState : finalResourceState._subresourceState) {
+				for (auto subresourceState : finalResourceState._subResourceState) {
 					if (expectTransition.StateAfter != subresourceState.second) {
 						D3D12_RESOURCE_BARRIER newBarrier = expectBarrier;
 						newBarrier.Transition.Subresource = subresourceState.first;
@@ -25,7 +28,7 @@ void ResourceStateTracker::resourceBarrier(const D3D12_RESOURCE_BARRIER &expectB
 					}
 				}
 			} else {	// 整个 resource 都转换为 expectBarrier 状态
-				auto finalState = finalResourceState.getSubresourceState(expectTransition.Subresource);
+				auto finalState = finalResourceState.getSubResourceState(expectTransition.Subresource);
 				if (finalState != expectTransition.StateAfter) {
 					D3D12_RESOURCE_BARRIER newBarrier = expectBarrier;
 					newBarrier.Transition.StateBefore = finalState;
@@ -36,7 +39,7 @@ void ResourceStateTracker::resourceBarrier(const D3D12_RESOURCE_BARRIER &expectB
 			_pendingResourceBarriers.push_back(expectBarrier);
 		}
 		auto &finalResourceStateRecord = _finalResourceState[expectTransition.pResource];
-		finalResourceStateRecord.setSubresourceState(expectTransition.Subresource, expectTransition.StateAfter);
+		finalResourceStateRecord.setSubResourceState(expectTransition.Subresource, expectTransition.StateAfter);
 	} else {
 		_resourceBarriers.push_back(expectBarrier);
 	}
@@ -44,10 +47,14 @@ void ResourceStateTracker::resourceBarrier(const D3D12_RESOURCE_BARRIER &expectB
 
 D3D12_RESOURCE_STATES ResourceStateTracker::getResourceState(ID3D12Resource *pResource, UINT subResource) {
 	if (auto iter = _finalResourceState.find(pResource); iter != _finalResourceState.end())
-		return iter->second.getSubresourceState(subResource);
+		return iter->second.getSubResourceState(subResource);
 
-	if (auto iter = _globalResourceState.find(pResource); iter != _globalResourceState.end())
-		return iter->second.getSubresourceState(subResource);
+	auto *pGlobalResourceState = getGlobalResourceState();
+	ResourceState *pResourceState = (pGlobalResourceState != nullptr) ?
+		pGlobalResourceState->findResourceState(pResource) : nullptr;
+
+	if (pResourceState != nullptr)
+		return pResourceState->getSubResourceState(subResource);
 
 	assert(false);
 	return D3D12_RESOURCE_STATE_COMMON;
@@ -71,15 +78,15 @@ void ResourceStateTracker::UAVBarrier(const IResource *pResource /*= nullptr*/) 
 	resourceBarrier(CD3DX12_RESOURCE_BARRIER::UAV(pD3DResource));
 }
 
-void ResourceStateTracker::aliasBarrier(const IResource *pBeforce, const IResource *pAfter) {
-	auto *pD3DBeforceResource = pBeforce != nullptr ? pBeforce->getD3DResource().Get() : nullptr;
+void ResourceStateTracker::aliasBarrier(const IResource *pBefore, const IResource *pAfter) {
+	auto *pD3DBeforeResource = pBefore != nullptr ? pBefore->getD3DResource().Get() : nullptr;
 	auto *pD3DAfterResource = pAfter != nullptr ? pAfter->getD3DResource().Get() : nullptr;
-	if (pD3DBeforceResource == nullptr || pD3DAfterResource == nullptr) {
+	if (pD3DBeforeResource == nullptr || pD3DAfterResource == nullptr) {
 		assert(false);
-		std::cout << __FUNCTION__ << " pD3DBeforceResource == nullptr || pD3DAfterResource == nullptr" << std::endl;
+		std::cout << __FUNCTION__ << " pD3DBeforeResource == nullptr || pD3DAfterResource == nullptr" << std::endl;
 		return;
 	}
-	resourceBarrier(CD3DX12_RESOURCE_BARRIER::Aliasing(pD3DBeforceResource, pD3DAfterResource));
+	resourceBarrier(CD3DX12_RESOURCE_BARRIER::Aliasing(pD3DBeforeResource, pD3DAfterResource));
 }
 
 uint32 ResourceStateTracker::flushResourceBarriers(std::shared_ptr<CommandList> pCmdList) {
@@ -92,31 +99,38 @@ uint32 ResourceStateTracker::flushResourceBarriers(std::shared_ptr<CommandList> 
 }
 
 void ResourceStateTracker::commitFinalResourceStates() {
-	assert(_isLocked);
-	for (auto &&[pResource, state] : _finalResourceState) 
-		_globalResourceState[pResource] = state;
+	auto *pGlobalResourceState = getGlobalResourceState();
+	assert(pGlobalResourceState->isLocked());
+	for (auto &&[pResource, state] : _finalResourceState) {
+		if (pGlobalResourceState != nullptr)
+			pGlobalResourceState->setResourceState(pResource, state);
+	}
 	_finalResourceState.clear();
 }
 
 UINT ResourceStateTracker::flushPendingResourceBarriers(std::shared_ptr<CommandList> pCmdList) {
-	assert(_isLocked);
+	auto *pGlobalResourceState = getGlobalResourceState();
+	assert(pGlobalResourceState->isLocked());
 
 	std::vector<D3D12_RESOURCE_BARRIER> resourceBarriers;
 	resourceBarriers.reserve(_pendingResourceBarriers.size());
 	for (auto &pendingBarrier : _pendingResourceBarriers) {
 		if (pendingBarrier.Type == D3D12_RESOURCE_BARRIER_TYPE_TRANSITION) {
 			const auto &pendingTransition = pendingBarrier.Transition;
-			auto iter = _globalResourceState.find(pendingTransition.pResource);
-			if (iter == _globalResourceState.end()) {
+
+			ResourceState *pResourceState = nullptr;
+			if (pGlobalResourceState == nullptr || 
+				(pResourceState = pGlobalResourceState->findResourceState(pendingTransition.pResource)) == nullptr) 
+			{
 				assert(false && "Unknown resource status");
 				continue;
 			}
 
-			const auto &currResourceState = iter->second;
+			const auto &currResourceState = *pResourceState;
 			if (pendingTransition.Subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES &&
-				!currResourceState._subresourceState.empty())
+				!currResourceState._subResourceState.empty())
 			{
-				for (auto &&[subResource, state] : currResourceState._subresourceState) {
+				for (auto &&[subResource, state] : currResourceState._subResourceState) {
 					if (pendingTransition.StateAfter != state) {
 						auto newBarrier = pendingBarrier;
 						newBarrier.Transition.Subresource = subResource;
@@ -151,46 +165,28 @@ void ResourceStateTracker::reset() {
 	_finalResourceState.clear();
 }
 
-void ResourceStateTracker::lock() {
-	_globalMutex.lock();
-	_isLocked = true;
-}
-
-void ResourceStateTracker::unlock() {
-	_globalMutex.unlock();
-	_isLocked = false;
-}
-
-void ResourceStateTracker::addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state) {
-	if (pResource != nullptr) {
-		std::lock_guard lock(_globalMutex);
-		_globalResourceState[pResource].setSubresourceState(D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, state);
-	}
-}
-
-void ResourceStateTracker::removeGlobalResourceState(ID3D12Resource *pResource) {
-	if (pResource != nullptr) {
-		std::lock_guard lock(_globalMutex);
-		_globalResourceState.erase(pResource);
-	}
+GlobalResourceState * ResourceStateTracker::getGlobalResourceState() const {
+	if (auto pSharedDevice = _pDevice.lock())
+		return pSharedDevice->getGlobalResourceState();
+	return nullptr;
 }
 
 ResourceStateTracker::ResourceState::ResourceState(D3D12_RESOURCE_STATES state /*= D3D12_RESOURCE_STATE_COMMON*/)
 : _state(state) {
 }
 
-void ResourceStateTracker::ResourceState::setSubresourceState(UINT subresource, D3D12_RESOURCE_STATES state) {
-	if (subresource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES) {
+void ResourceStateTracker::ResourceState::setSubResourceState(UINT subResource, D3D12_RESOURCE_STATES state) {
+	if (subResource == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES) {
 		_state = state;
-		_subresourceState.clear();
+		_subResourceState.clear();
 	} else {
-		_subresourceState[subresource] = state;
+		_subResourceState[subResource] = state;
 	}
 }
 
-D3D12_RESOURCE_STATES ResourceStateTracker::ResourceState::getSubresourceState(UINT subresource) {
+D3D12_RESOURCE_STATES ResourceStateTracker::ResourceState::getSubResourceState(UINT subResource) {
 	auto state = _state;
-	if (auto iter = _subresourceState.find(subresource); iter != _subresourceState.end())
+	if (auto iter = _subResourceState.find(subResource); iter != _subResourceState.end())
 		state = iter->second;
 	return state;
 }
@@ -208,7 +204,7 @@ void GlobalResourceState::unlock() {
 void GlobalResourceState::addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state) {
 	if (pResource != nullptr) {
 		std::lock_guard lock(_mutex);
-		_resourceState[pResource].setSubresourceState(D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, state);
+		_resourceState[pResource].setSubResourceState(D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, state);
 	}
 }
 
@@ -217,6 +213,27 @@ void GlobalResourceState::removeGlobalResourceState(ID3D12Resource *pResource) {
 		std::lock_guard lock(_mutex);
 		_resourceState.erase(pResource);
 	}
+}
+
+void GlobalResourceState::setResourceState(ID3D12Resource *pResource, const ResourceState &state) {
+	_resourceState[pResource] = state;
+}
+
+const GlobalResourceState::ResourceState *GlobalResourceState::findResourceState(
+	ID3D12Resource *pResource) const
+{
+	return const_cast<GlobalResourceState *>(this)->findResourceState(pResource);
+}
+
+GlobalResourceState::ResourceState * GlobalResourceState::findResourceState(ID3D12Resource *pResource) {
+	auto iter = _resourceState.find(pResource);
+	if (iter != _resourceState.end())
+		return &iter->second;
+	return nullptr;
+}
+
+bool GlobalResourceState::isLocked() const {
+	return _isLocked;
 }
 
 }

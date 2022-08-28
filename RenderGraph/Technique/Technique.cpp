@@ -1,5 +1,7 @@
 #include "Technique.h"
 
+#include "RenderGraph/RenderGraph/RenderGraph.h"
+
 namespace rgph {
 
 Technique::Technique(const std::string &techniqueName, TechniqueType type, bool active)
@@ -14,7 +16,7 @@ void Technique::addStep(std::unique_ptr<Step> pStep) {
 
 void Technique::submit(const TechniqueFlag &techniqueFlag, 
 	const Geometry *pGeometry, 
-	const TransformCBuffer *pTransformCBuffer) const
+	const TransformCBufferPtr *pTransformCBuffer) const
 {
 	if (!isActive() || !techniqueFlag.test(_techniqueType))
 		return;

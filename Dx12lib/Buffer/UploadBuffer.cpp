@@ -1,9 +1,11 @@
 #include <Dx12lib/Buffer/UploadBuffer.h>
 #include <Dx12lib/Resource/ResourceStateTracker.h>
 
+#include "Dx12lib/Device/Device.h"
+
 namespace dx12lib {
 
-UploadBuffer::UploadBuffer(ID3D12Device *pDevice, 
+UploadBuffer::UploadBuffer(std::weak_ptr<Device> pDevice,
 	size_t elementCount, 
 	size_t elementByteSize, 
 	bool isConstantBuffer, 
@@ -11,11 +13,14 @@ UploadBuffer::UploadBuffer(ID3D12Device *pDevice,
 
 )
 : _isConstantBuffer(isConstantBuffer), _elementByteSize(elementByteSize), _elementCount(elementCount), _pMappedData(nullptr)
+, _pDevice(pDevice)
 {
 	if (isConstantBuffer)
 		_elementByteSize = calcConstantBufferByteSize(elementByteSize);
 
-	ThrowIfFailed(pDevice->CreateCommittedResource(
+	auto pSharedDevice = pDevice.lock();
+	auto pD3DDevice = pSharedDevice->getD3DDevice();
+	ThrowIfFailed(pD3DDevice->CreateCommittedResource(
 		RVPtr(CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD)),
 		D3D12_HEAP_FLAG_NONE,
 		RVPtr(CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT64>(elementByteSize) * _elementByteSize, flags)),
@@ -24,7 +29,14 @@ UploadBuffer::UploadBuffer(ID3D12Device *pDevice,
 		IID_PPV_ARGS(&_pUploadResource)
 	));
 
-	ResourceStateTracker::addGlobalResourceState(_pUploadResource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ);
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pUploadResource.Get(), D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+UploadBuffer::~UploadBuffer() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pUploadResource.Get());
+	}
 }
 
 void UploadBuffer::map() const {

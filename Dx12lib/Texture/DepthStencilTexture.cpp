@@ -22,7 +22,10 @@ DepthStencilView DepthStencil2D::getDSV() const {
 }
 
 DepthStencil2D::~DepthStencil2D() {
-	ResourceStateTracker::removeGlobalResourceState(_pResource.Get());
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
 }
 
 DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice, 
@@ -30,6 +33,7 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 	size_t height,
 	const D3D12_CLEAR_VALUE *pClearValue,
 	DXGI_FORMAT depthStencilFormat)
+: _pDevice(pDevice)
 {
 	auto pSharedDevice = pDevice.lock();
 	if (depthStencilFormat == DXGI_FORMAT_UNKNOWN)
@@ -65,13 +69,14 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 		IID_PPV_ARGS(&_pResource)
 	));
 	createViews(pDevice);
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 }
 
 DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice, 
 	WRL::ComPtr<ID3D12Resource> pResource, 
 	D3D12_RESOURCE_STATES state, 
 	const D3D12_CLEAR_VALUE *pClearValue)
+: _pDevice(pDevice)
 {
 	if (pClearValue != nullptr) {
 		_clearValue = *pClearValue;
@@ -83,7 +88,8 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 
 	_pResource = pResource;
 	createViews(pDevice);
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(pResource.Get(), state);
 }
 
 void DepthStencil2D::createViews(std::weak_ptr<Device> pDevice) {

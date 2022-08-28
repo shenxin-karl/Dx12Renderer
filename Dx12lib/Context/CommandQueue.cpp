@@ -59,7 +59,14 @@ void CommandQueue::executeCommandList(std::vector<ContextProxy> contextList) {
 	contextList.insert(contextList.end(), _delayExecutedContextProxy.begin(), _delayExecutedContextProxy.end());
 	_delayExecutedContextProxy.clear();
 
-	ResourceStateTracker::lock();
+
+	auto pSharedDevice = _pDevice.lock();
+	if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState()) {
+		pGlobalResourceState->lock();
+	} else {
+		assert(false && "pGlobalResourceState is nullptr");
+	}
+
 	for (auto &pContext : contextList) {
 		auto pCmdList = pContext.getCmdList();
 		auto *pD3DCmdList = pCmdList->getD3DCommandList();
@@ -74,7 +81,12 @@ void CommandQueue::executeCommandList(std::vector<ContextProxy> contextList) {
 	}
 
 	_pCommandQueue->ExecuteCommandLists(static_cast<UINT>(lists.size()), lists.data());
-	ResourceStateTracker::unlock();
+
+	if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState()) {
+		pGlobalResourceState->unlock();
+	} else {
+		assert(false && "pGlobalResourceState is nullptr");
+	}
 }
 
 bool CommandQueue::isFenceComplete(uint64 fenceValue) const noexcept {

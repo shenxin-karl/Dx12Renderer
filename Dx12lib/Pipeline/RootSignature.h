@@ -1,6 +1,7 @@
 #pragma once
 #include <Dx12lib/dx12libStd.h>
 #include <Dx12lib/Pipeline/ShaderRegister.hpp>
+#include <optional>
 
 namespace dx12lib {
 

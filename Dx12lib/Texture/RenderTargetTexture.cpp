@@ -66,10 +66,17 @@ D3D12_CLEAR_VALUE RenderTarget2D::getClearValue() const {
 	return _clearValue;
 }
 
+RenderTarget2D::~RenderTarget2D() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> 
                                pDevice, WRL::ComPtr<ID3D12Resource> pResource,
                                D3D12_RESOURCE_STATES state, 
-								const D3D12_CLEAR_VALUE *pClearValue)
+                               const D3D12_CLEAR_VALUE *pClearValue)
 : _pDevice(pDevice), _pResource(pResource)
 {
 	if (pClearValue != nullptr) {
@@ -81,7 +88,8 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device>
 		_clearValue.Color[2] = 0.f;
 		_clearValue.Color[3] = 1.f;
 	}
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size_t height,
@@ -124,8 +132,7 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
 }
 
 
@@ -217,6 +224,13 @@ RenderTargetView RenderTarget2DArray::getPlaneRTV(size_t planeSlice, size_t mipS
 	return RTV;
 }
 
+RenderTarget2DArray::~RenderTarget2DArray() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice, 
@@ -224,7 +238,8 @@ RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 	D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource)
 {
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(pResource.Get(), state);
 }
 
 RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice, 
@@ -272,7 +287,7 @@ RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 		IID_PPV_ARGS(&_pResource)
 	));
 
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
 }
 
 WRL::ComPtr<ID3D12Resource> RenderTargetCube::getD3DResource() const {
@@ -357,12 +372,20 @@ RenderTargetView RenderTargetCube::getFaceRTV(CubeFace face, size_t mipSlice) co
 	return RTV;
 }
 
+RenderTargetCube::~RenderTargetCube() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice,
-	WRL::ComPtr<ID3D12Resource> pResource,
-	D3D12_RESOURCE_STATES state)
+                                   WRL::ComPtr<ID3D12Resource> pResource,
+                                   D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource)
 {
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice, size_t width, size_t height,
@@ -404,7 +427,7 @@ RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice, size_t width, 
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
 }
 
 }

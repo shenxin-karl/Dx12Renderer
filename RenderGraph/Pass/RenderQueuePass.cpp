@@ -1,6 +1,9 @@
 #include "RenderQueuePass.h"
+
+#include <format>
+#include <iostream>
+
 #include "RenderGraph/Bindable/Bindable.hpp"
-#include "RenderGraph/Bindable/GraphicsPSOBindable.h"
 #include "RenderGraph/Pass/SubPass.h"
 
 namespace rgph {
@@ -26,26 +29,40 @@ void RenderQueuePass::addSubPass(std::shared_ptr<SubPass> pSubPass) {
 }
 
 
-void RenderQueuePass::execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const {
-	bool hasJob = true;
-	for (auto &pSubPass : _subPasses)
-		hasJob = hasJob && (pSubPass->getJobCount() > 0);
+void RenderQueuePass::execute(dx12lib::DirectContextProxy pDirectCtx) {
+	bool hasJob = false;
+	for (auto &pSubPass : _subPasses) {
+		if (pSubPass->getJobCount() > 0) {
+			hasJob = true;
+			break;
+		}
+	}
 
 	if (!hasJob)
 		return;
 
-	bindAll(*pGraphicsCtx);
-	bindRenderTarget(*pGraphicsCtx);
-	for (auto &pSubPass : _subPasses) {
+	ExecutablePass::execute(pDirectCtx);
+	auto iter = _subPasses.begin();
+	while (iter != _subPasses.end()) {
+		auto pSubPass = *iter;
+		if (!pSubPass->valid()) {
+			if (pSubPass->getJobCount() > 0)
+				std::cerr << std::format("SubPass: {}, pos is empty, but job count > 0", pSubPass->getSubPassName());
+
+			iter = _subPasses.erase(iter);
+			continue;
+		}
+
 		auto passCBufferShaderRegister = pSubPass->getPassCBufferShaderRegister();
 		if (_pPassCBuffer == nullptr && passCBufferShaderRegister.slot && !passCBufferShaderRegister.slot.isSampler())
-			pGraphicsCtx->setConstantBuffer(passCBufferShaderRegister, _pPassCBuffer);
-		pSubPass->execute(*pGraphicsCtx);
+			pDirectCtx->setConstantBuffer(passCBufferShaderRegister, _pPassCBuffer);
+		pSubPass->execute(*pDirectCtx);
+		++iter;
 	}
 }
 
 void RenderQueuePass::reset() {
-	BindingPass::reset();
+	ExecutablePass::reset();
 	for (auto &pSubPass : _subPasses)
 		pSubPass->reset();
 }

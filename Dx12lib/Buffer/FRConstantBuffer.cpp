@@ -11,7 +11,7 @@ FRConstantBuffer<RawData>::FRConstantBuffer(std::weak_ptr<Device> pDevice, size_
 
 	auto pSharedDevice = pDevice.lock();
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		static_cast<size_t>(kFrameResourceCount),
 		sizeInByte,
 		true

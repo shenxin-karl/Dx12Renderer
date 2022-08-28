@@ -36,12 +36,20 @@ ShaderResourceView SamplerTexture2D::getSRV(size_t mipSlice) const {
 	return SRV;
 }
 
+SamplerTexture2D::~SamplerTexture2D() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 SamplerTexture2D::SamplerTexture2D(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-                     WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
+                                   WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource), _pUploader(pUploader)
 {
 	assert(pResource->GetDesc().DepthOrArraySize == 1);
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,11 +116,19 @@ ShaderResourceView SamplerTexture2DArray::getPlaneSRV(size_t planeSlice, size_t 
 	return SRV;
 }
 
+SamplerTexture2DArray::~SamplerTexture2DArray() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 SamplerTexture2DArray::SamplerTexture2DArray(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-                               WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
+                                             WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource), _pUploader(pUploader) {
 	assert(pResource->GetDesc().DepthOrArraySize >= 1);
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,12 +192,20 @@ ShaderResourceView SamplerTextureCube::getFaceSRV(CubeFace face, size_t mipSlice
 	return SRV;
 }
 
+SamplerTextureCube::~SamplerTextureCube() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 SamplerTextureCube::SamplerTextureCube(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-	WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
+                                       WRL::ComPtr<ID3D12Resource> pUploader, D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource), _pUploader(pUploader)
 {
 	assert(pResource->GetDesc().DepthOrArraySize == 6);
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 }

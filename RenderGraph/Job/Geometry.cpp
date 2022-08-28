@@ -5,7 +5,7 @@
 
 namespace rgph {
 
-void Geometry::bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlot &vertexInputSlot) const {
+void Geometry::bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlots &vertexInputSlot) const {
 	graphicsCtx.setPrimitiveTopology(_topology);
 	for (size_t slot = 0; slot < dx12lib::kVertexBufferSlotCount; ++slot) {
 		if (!vertexInputSlot.test(slot)) 
@@ -46,6 +46,15 @@ void Geometry::setDrawArgs(const DrawArgs &drawArgs) {
 	_drawArgs = drawArgs;
 }
 
+void Geometry::applyTransform(const Matrix4 &matWorld) {
+	if (_pMesh != nullptr) {
+		auto localAABB = _pMesh->getBoundingBox();
+		_worldAABB = localAABB.transform(matWorld);
+		return;
+	}
+	assert(false);
+}
+
 void Geometry::setTopology(D3D_PRIMITIVE_TOPOLOGY topology) {
 	_topology = topology;
 }
@@ -54,24 +63,20 @@ const DrawArgs & Geometry::getDrawArgs() const {
 	return _drawArgs;
 }
 
+const AxisAlignedBox & Geometry::getWorldAABB() const {
+	return _worldAABB;
+}
+
 D3D_PRIMITIVE_TOPOLOGY Geometry::getTopology() const {
 	return _topology;
 }
 
 void Geometry::genDrawArgs() {
-	size_t vertexCount = 0;
-	for (size_t i = 0; i < std::size(_pVertexBufferList); ++i) {
-		if (vertexCount == 0 && _pVertexBufferList[i] != nullptr) {
-			vertexCount = _pVertexBufferList[i]->getVertexCount();
-		}
-		else if (vertexCount != 0) {
-			assert(vertexCount == _pVertexBufferList[i]->getVertexCount());
-		}
-	}
+	if (_pMesh == nullptr)
+		return;
 
-	_drawArgs.vertexCount = vertexCount;
-	if (_pIndexBuffer != nullptr)
-		_drawArgs.indexCount = _pIndexBuffer->getIndexCount();
+	_drawArgs.vertexCount = _pMesh->getPositions().size();
+	_drawArgs.indexCount = _pMesh->getIndices().size();
 }
 
 void Geometry::draw(dx12lib::IGraphicsContext &graphicsCtx) const {

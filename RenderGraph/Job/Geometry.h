@@ -5,6 +5,7 @@ namespace rgph {
 
 interface IMesh : public NonCopyable {
 	using BoneIndex = std::array<uint8_t, 4>;
+	virtual const std::string &getMeshName() const = 0;
 	virtual const std::vector<float4> &getPositions() const { static std::vector<float4> vec; return vec; }
 	virtual const std::vector<float3> &getNormals() const { static std::vector<float3> vec; return vec; }
 	virtual const std::vector<float3> &getTangents() const { static std::vector<float3> vec; return vec; }
@@ -16,7 +17,7 @@ interface IMesh : public NonCopyable {
 	virtual const AxisAlignedBox &getBoundingBox() const { static AxisAlignedBox box; return box; }
 };
 
-using VertexInputSlot = std::bitset<dx12lib::kVertexBufferSlotCount>;
+using VertexInputSlots = std::bitset<dx12lib::kVertexBufferSlotCount>;
 
 struct DrawArgs {
 	size_t vertexCount = 0;
@@ -29,7 +30,7 @@ struct DrawArgs {
 
 class Geometry {
 public:
-	void bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlot &vertexInputSlot) const;
+	void bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlots &vertexInputSlot) const;
 	void setVertexBuffer(size_t idx, std::shared_ptr<dx12lib::VertexBuffer> pVertexBuffer);
 	void setIndexBuffer(std::shared_ptr<dx12lib::IndexBuffer> pIndexBuffer);
 	void setMesh(std::shared_ptr<IMesh> pMesh);
@@ -37,13 +38,16 @@ public:
 	std::shared_ptr<dx12lib::IndexBuffer> getIndexBuffer() const;
 	std::shared_ptr<IMesh> getMesh() const;
 	void setDrawArgs(const DrawArgs &drawArgs);
+	void applyTransform(const Matrix4 &matWorld);
 	void setTopology(D3D_PRIMITIVE_TOPOLOGY topology);
 	const DrawArgs &getDrawArgs() const;
+	const AxisAlignedBox &getWorldAABB() const;
 	D3D_PRIMITIVE_TOPOLOGY getTopology() const;
 	void genDrawArgs();
 	void draw(dx12lib::IGraphicsContext &graphicsCtx) const;
 protected:
 	DrawArgs _drawArgs;
+	AxisAlignedBox _worldAABB;
 	std::shared_ptr<IMesh> _pMesh;
 	std::shared_ptr<dx12lib::IndexBuffer> _pIndexBuffer;
 	std::shared_ptr<dx12lib::VertexBuffer> _pVertexBufferList[dx12lib::kVertexBufferSlotCount];

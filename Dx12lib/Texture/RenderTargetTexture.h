@@ -9,6 +9,7 @@ public:
 	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
 	RenderTargetView getRTV(size_t mipSlice = 0) const override;
 	D3D12_CLEAR_VALUE getClearValue() const override;
+	~RenderTarget2D() override;
 protected:
 	RenderTarget2D(std::weak_ptr<Device> pDevice, 
 		WRL::ComPtr<ID3D12Resource> pResource, 
@@ -35,6 +36,7 @@ public:
 	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
 	ShaderResourceView getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
 	RenderTargetView getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const override;
+	~RenderTarget2DArray() override;
 protected:
 	RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 		WRL::ComPtr<ID3D12Resource> pResource,
@@ -62,6 +64,7 @@ public:
 	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
 	ShaderResourceView getFaceSRV(CubeFace face, size_t mipSlice) const override;
 	RenderTargetView getFaceRTV(CubeFace face, size_t mipSlice = 0) const override;
+	~RenderTargetCube() override;
 protected:
 	RenderTargetCube(std::weak_ptr<Device> pDevice,
 		WRL::ComPtr<ID3D12Resource> pResource,

@@ -5,7 +5,7 @@
 
 namespace dx12lib {
 
-class SRStructuredBuffer : public IStructuredBuffer {
+class SRStructuredBuffer : public ISRStructuredBuffer {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
 	size_t getBufferSize() const override;

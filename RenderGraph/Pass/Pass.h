@@ -9,16 +9,15 @@ class PassResourceBase;
 class Pass : public NonCopyable {
 public:
 	explicit Pass(const std::string &passName);
-	virtual void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const = 0;
+	virtual PassResourceBase *getPassResource(const std::string &resourceName) const { return nullptr; }
+	virtual void preExecute(dx12lib::DirectContextProxy pDirectCtx) {}
+	virtual void execute(dx12lib::DirectContextProxy pDirectCtx) {}
+	virtual void postExecute(dx12lib::DirectContextProxy pDirectCtx) {}
 	virtual void reset() {}
 	void setPassName(const std::string &passName);
 	const std::string &getPassName() const;
 private:
-	friend class PassResourceBase;
-	void addPassResource(PassResourceBase *pResource);
-private:
 	std::string _passName;
-	std::vector<PassResourceBase *> _passResource;
 };
 
 }

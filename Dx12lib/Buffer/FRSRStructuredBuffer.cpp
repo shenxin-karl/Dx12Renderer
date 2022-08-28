@@ -9,7 +9,7 @@ FRSRStructuredBuffer<RawData>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevic
 	auto pSharedDevice = pDevice.lock();
 	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		kFrameResourceCount,
 		sizeInByte,
 		false

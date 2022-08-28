@@ -7,6 +7,7 @@
 #include <Dx12lib/Context/CommandQueue.h>
 #include <Dx12lib/Pipeline/PipelineStateObject.h>
 #include <Dx12lib/Pipeline/RootSignature.h>
+#include <Dx12lib/Resource/ResourceStateTracker.h>
 
 namespace dx12lib {
 	
@@ -38,6 +39,7 @@ void Device::initialize(const DeviceInitDesc &desc) {
 		));
 	}
 
+	_pGlobalResourceState = std::make_unique<GlobalResourceState>();
 	_pCommandQueue = std::make_shared<dx12libTool::MakeCommandQueue>(weak_from_this(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 
 	for (std::size_t i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i) {
@@ -99,6 +101,10 @@ std::shared_ptr<CommandQueue> Device::getCommandQueue() const {
 
 ID3D12Device *Device::getD3DDevice() const {
 	return _pDevice.Get();
+}
+
+GlobalResourceState * Device::getGlobalResourceState() const {
+	return _pGlobalResourceState.get();
 }
 
 }

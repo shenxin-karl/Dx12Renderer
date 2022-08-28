@@ -84,7 +84,7 @@ template <typename T>
 FRConstantBuffer<T>::FRConstantBuffer(std::weak_ptr<Device> pDevice, const T &object) : _object(object) {
 	auto pSharedDevice = pDevice.lock();
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		static_cast<size_t>(kFrameResourceCount),
 		sizeof(T),
 		true

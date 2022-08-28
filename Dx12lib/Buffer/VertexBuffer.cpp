@@ -13,7 +13,8 @@ VertexBuffer::VertexBuffer(std::weak_ptr<Device> pDevice,
 : _vertexStride(stride)
 {
 	size_t sizeInByte = numElements * stride;
-	_pDefaultBuffer = std::make_unique<DefaultBuffer>(pDevice.lock()->getD3DDevice(), 
+	_pDefaultBuffer = std::make_unique<DefaultBuffer>(
+		pDevice,
 		pCmdList->getD3DCommandList(), 
 		pData, 
 		sizeInByte

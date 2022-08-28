@@ -1,13 +1,12 @@
 #include "Job.h"
 #include "Geometry.h"
-#include "TransformCBuffer.h"
-#include "RenderGraph/Bindable/GraphicsPSOBindable.h"
+#include "TransformCBufferPtr.h"
 #include "RenderGraph/Drawable/Drawable.h"
 #include "RenderGraph/Technique/Step.h"
 
 namespace rgph {
 
-Job::Job(const Step *pStep, const Geometry *pGeometry, const TransformCBuffer *pTransformCBuffer)
+Job::Job(const Step *pStep, const Geometry *pGeometry, const TransformCBufferPtr *pTransformCBuffer)
 :  pStep(pStep), pGeometry(pGeometry), pTransformCBuffer(pTransformCBuffer)
 {
 	assert(pStep != nullptr);
@@ -16,7 +15,7 @@ Job::Job(const Step *pStep, const Geometry *pGeometry, const TransformCBuffer *p
 }
 
 void Job::execute(dx12lib::IGraphicsContext &graphicsCtx, 
-	const VertexInputSlot &vertexInputSlots,
+	const VertexInputSlots &vertexInputSlots,
 	const dx12lib::ShaderRegister &transformCBufferReg) const
 {
 	assert(pStep != nullptr);

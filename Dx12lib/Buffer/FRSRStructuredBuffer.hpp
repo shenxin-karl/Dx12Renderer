@@ -11,7 +11,7 @@ namespace dx12lib {
 
 // frame resource structured buffer template
 template<>
-class FRSRStructuredBuffer<RawData> : public IStructuredBuffer {
+class FRSRStructuredBuffer<RawData> : public ISRStructuredBuffer {
 protected:
 	FRSRStructuredBuffer(std::weak_ptr<Device> pDevice, const void *pData, size_t numElements, size_t stride);
 public:
@@ -41,7 +41,7 @@ private:
 
 // frame resource structured buffer template
 template<typename T>
-class FRSRStructuredBuffer : public IStructuredBuffer {
+class FRSRStructuredBuffer : public ISRStructuredBuffer {
 protected:
 	FRSRStructuredBuffer(std::weak_ptr<Device> pDevice, const T *pData, size_t numElements);
 	FRSRStructuredBuffer(std::weak_ptr<Device> pDevice, size_t numElements);
@@ -65,7 +65,7 @@ FRSRStructuredBuffer<T>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevice, con
 	auto pSharedDevice = pDevice.lock();
 	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		kFrameResourceCount,
 		sizeInByte,
 		false

@@ -42,7 +42,7 @@ UAStructuredBuffer::UAStructuredBuffer(std::weak_ptr<Device> pDevice,
 	size_t sizeInByte = numElements * stride;
 	auto pSharedDevice = pDevice.lock();
 	_pDefaultBuffer = std::make_unique<DefaultBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		pCmdList->getD3DCommandList(),
 		pData,
 		sizeInByte,

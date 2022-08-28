@@ -9,7 +9,7 @@ namespace dx12lib {
 
 ConstantBuffer::ConstantBuffer(std::weak_ptr<Device> pDevice, const void *pData, size_t sizeInByte) {
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pDevice.lock()->getD3DDevice(),
+		pDevice,
 		1,
 		sizeInByte,
 		true

@@ -118,8 +118,8 @@ interface IIndexBuffer : IBufferResource {
 	virtual DXGI_FORMAT getIndexFormat() const = 0;
 	virtual IndexBufferView getIndexBufferView() const = 0;
 };
-//////////////////////////////////////////IStructuredBuffer//////////////////////////////////////////
-interface IStructuredBuffer : IBufferResource {
+//////////////////////////////////////////ISRStructuredBuffer//////////////////////////////////////////
+interface ISRStructuredBuffer : IBufferResource {
 	BufferType getBufferType() const override;
 	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
 	virtual size_t getElementCount() const = 0;
@@ -127,23 +127,7 @@ interface IStructuredBuffer : IBufferResource {
 	virtual void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) = 0;
 	virtual ShaderResourceView getSRV() const = 0;
 };
-//////////////////////////////////////////IConsumeStructuredBuffer//////////////////////////////////////////
-interface IConsumeStructuredBuffer : IBufferResource {
-	BufferType getBufferType() const override;
-	bool checkUAVState(D3D12_RESOURCE_STATES state) const override;
-	virtual size_t getElementCount() const = 0;
-	virtual size_t getElementStride() const = 0;
-	virtual UnorderedAccessView getUAV() const = 0;
-};
-
-interface IAppendStructuredBuffer : IBufferResource {
-	BufferType getBufferType() const override;
-	bool checkUAVState(D3D12_RESOURCE_STATES state) const override;
-	virtual size_t getElementCount() const = 0;
-	virtual size_t getElementStride() const = 0;
-	virtual UnorderedAccessView getUAV() const = 0;
-	virtual ShaderResourceView getSRV() const = 0;
-};
+//////////////////////////////////////////IUAStructuredBuffer//////////////////////////////////////////
 interface IUAStructuredBuffer : IBufferResource {
 	BufferType getBufferType() const override;
 	bool checkUAVState(D3D12_RESOURCE_STATES state) const override;

@@ -27,6 +27,7 @@ protected:
 	void createViews(std::weak_ptr<Device> pDevice);
 private:
 	D3D12_CLEAR_VALUE _clearValue;
+	std::weak_ptr<Device> _pDevice;
 	DepthStencilView _depthStencilView;
 	ShaderResourceView _shaderResourceView;
 	WRL::ComPtr<ID3D12Resource> _pResource;

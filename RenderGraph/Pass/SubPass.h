@@ -9,7 +9,7 @@ namespace rgph {
 
 class SubPass {
 public:
-	SubPass(std::shared_ptr<GraphicsPSOBindable> pGraphicsBindable);
+	SubPass(std::weak_ptr<dx12lib::GraphicsPSO> pGraphicsPso);
 	const std::string &getSubPassName() const;
 	void addBindable(std::shared_ptr<Bindable> pBindable);
 	std::shared_ptr<Bindable> getBindableByType(BindableType bindableType) const;
@@ -18,19 +18,21 @@ public:
 	virtual void reset();
 	virtual ~SubPass();
 	size_t getJobCount() const;
-	void setVertexDataInputSlots(const VertexInputSlot &inputSlot);
+	void setVertexDataInputSlots(const VertexInputSlots &inputSlot);
 	void setTransformCBufferShaderRegister(const dx12lib::ShaderRegister &transShaderRegister);
 	void setPassCBufferShaderRegister(const dx12lib::ShaderRegister &passShaderRegister);
-	const VertexInputSlot &getVertexDataInputSlots() const;
+	const VertexInputSlots &getVertexDataInputSlots() const;
 	const dx12lib::ShaderRegister &getTransformCBufferShaderRegister() const;
 	const dx12lib::ShaderRegister &getPassCBufferShaderRegister() const;
+	bool valid() const;
 protected:
 	bool _finalize = false;
 	std::vector<Job> _jobs;
-	VertexInputSlot _vertexDataSlots;
+	std::string _subPassName;
+	VertexInputSlots _vertexDataSlots;
 	dx12lib::ShaderRegister _transformCBufferShaderRegister;
 	dx12lib::ShaderRegister _passCBufferShaderRegister;
-	std::shared_ptr<GraphicsPSOBindable> _pGraphicsPsoBindable;
+	std::weak_ptr<dx12lib::GraphicsPSO> _pGraphicsPso;
 	std::vector<std::shared_ptr<Bindable>> _bindables;
 };
 

@@ -59,7 +59,7 @@ CommandList::CommandList(std::weak_ptr<FrameResourceItem> pFrameResourceItem) {
 		IID_PPV_ARGS(&_pCommandList)
 	));
 
-	_pResourceStateTracker = std::make_unique<dx12libTool::MakeResourceStateTracker>();
+	_pResourceStateTracker = std::make_unique<dx12libTool::MakeResourceStateTracker>(_pDevice);
 	for (std::size_t i = 0; i < kDynamicDescriptorHeapCount; ++i) {
 		_pDynamicDescriptorHeaps[i] = std::make_unique<dx12libTool::MakeDynamicDescriptorHeap>(
 			_pDevice,

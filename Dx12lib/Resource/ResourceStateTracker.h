@@ -1,12 +1,14 @@
 #pragma once
+#include <optional>
 #include <Dx12lib/dx12libStd.h>
 
 namespace dx12lib {
 
-	
+
+class GlobalResourceState;
 class ResourceStateTracker {
 protected:
-	ResourceStateTracker() = default;
+	explicit ResourceStateTracker(std::weak_ptr<Device> pDevice);
 public:
 	~ResourceStateTracker() = default;
 	void resourceBarrier(const D3D12_RESOURCE_BARRIER &barrier);
@@ -16,47 +18,45 @@ public:
 		UINT subResource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES
 	);
 	void UAVBarrier(const IResource *resource = nullptr);
-	void aliasBarrier(const IResource *pBeforce, const IResource *pAfter);
+	void aliasBarrier(const IResource *pBefore, const IResource *pAfter);
 	uint32 flushResourceBarriers(std::shared_ptr<CommandList> commandList);
 	void commitFinalResourceStates();
 	UINT flushPendingResourceBarriers(std::shared_ptr<CommandList> pCmdList);
 	void reset();
-	static void lock();
-	static void unlock();
-	static void addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state);
-	static void removeGlobalResourceState(ID3D12Resource *pResource);
+	GlobalResourceState *getGlobalResourceState() const;
 private:
 	friend class GlobalResourceState;
 	struct ResourceState {
 		explicit ResourceState(D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON);
-		void setSubresourceState(UINT subresource, D3D12_RESOURCE_STATES state);
-		D3D12_RESOURCE_STATES getSubresourceState(UINT subresource);
+		void setSubResourceState(UINT subResource, D3D12_RESOURCE_STATES state);
+		D3D12_RESOURCE_STATES getSubResourceState(UINT subResource);
 	public:
 		D3D12_RESOURCE_STATES                  _state;
-		std::map<UINT, D3D12_RESOURCE_STATES>  _subresourceState;
+		std::map<UINT, D3D12_RESOURCE_STATES>  _subResourceState;
 	};
 	using ResourceBarriers = std::vector<D3D12_RESOURCE_BARRIER>;
 	using ResourceStateMap = std::unordered_map<ID3D12Resource *, ResourceState>;
 private:
-	ResourceBarriers  _pendingResourceBarriers;
-	ResourceBarriers  _resourceBarriers;
-	ResourceStateMap  _finalResourceState;
-
-	static inline bool              _isLocked = false;
-	static inline std::mutex        _globalMutex;
-	static inline ResourceStateMap  _globalResourceState;
+	std::weak_ptr<Device> _pDevice;
+	ResourceBarriers      _pendingResourceBarriers;
+	ResourceBarriers      _resourceBarriers;
+	ResourceStateMap      _finalResourceState;
 };
 
 
 class GlobalResourceState {
+	using ResourceState = ResourceStateTracker::ResourceState;
+	using ResourceStateMap = ResourceStateTracker::ResourceStateMap;
 public:
 	void lock();
 	void unlock();
 	void addGlobalResourceState(ID3D12Resource *pResource, D3D12_RESOURCE_STATES state);
 	void removeGlobalResourceState(ID3D12Resource *pResource);
+	void setResourceState(ID3D12Resource *pResource, const ResourceState &state);
+	const ResourceState *findResourceState(ID3D12Resource *pResource) const;
+	ResourceState *findResourceState(ID3D12Resource *pResource);
+	bool isLocked() const;
 private:
-	using ResourceState = ResourceStateTracker::ResourceState;
-	using ResourceStateMap = ResourceStateTracker::ResourceStateMap;
 	bool              _isLocked = false;
 	std::mutex        _mutex;
 	ResourceStateMap  _resourceState;

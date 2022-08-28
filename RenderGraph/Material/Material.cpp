@@ -19,6 +19,14 @@ std::shared_ptr<Technique> Material::getTechnique(size_t idx) const {
 	return _techniques[idx];
 }
 
+VertexInputSlots Material::getVertexInputSlots() const {
+	return _vertexInputSlots;
+}
+
+void Material::linkSubPass(RenderGraph &graph) {
+
+}
+
 Material::~Material() {
 }
 

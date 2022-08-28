@@ -1,17 +1,19 @@
 #include "SubPass.h"
+#include "Dx12lib/Pipeline/PipelineStateObject.h"
 
-#include "RenderGraph/Bindable/GraphicsPSOBindable.h"
 
 namespace rgph {
 
-SubPass::SubPass(std::shared_ptr<GraphicsPSOBindable> pGraphicsBindable)
-: _pGraphicsPsoBindable(std::move(pGraphicsBindable))
+SubPass::SubPass(std::weak_ptr<dx12lib::GraphicsPSO> pGraphicsPso)
+: _pGraphicsPso(std::move(pGraphicsPso))
 {
-	assert(pGraphicsBindable != nullptr);
+	auto pSharePso = _pGraphicsPso.lock();
+	assert(pSharePso != nullptr);
+	_subPassName = pSharePso->getName();
 }
 
 const std::string &SubPass::getSubPassName() const {
-	return _pGraphicsPsoBindable->getPSOName();
+	return _subPassName;
 }
 
 void SubPass::addBindable(std::shared_ptr<Bindable> pBindable) {
@@ -34,7 +36,7 @@ void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx) const {
 	if (_jobs.empty())
 		return;
 
-	_pGraphicsPsoBindable->bind(graphicsCtx);
+	graphicsCtx.setGraphicsPSO(_pGraphicsPso.lock());
 	for (auto &pBindable : _bindables)
 		pBindable->bind(graphicsCtx);
 
@@ -53,7 +55,7 @@ size_t SubPass::getJobCount() const {
 	return _jobs.size();
 }
 
-void SubPass::setVertexDataInputSlots(const VertexInputSlot &inputSlot) {
+void SubPass::setVertexDataInputSlots(const VertexInputSlots &inputSlot) {
 	_vertexDataSlots = inputSlot;
 }
 
@@ -65,7 +67,7 @@ void SubPass::setPassCBufferShaderRegister(const dx12lib::ShaderRegister &passSh
 	_passCBufferShaderRegister = passShaderRegister;
 }
 
-const VertexInputSlot &SubPass::getVertexDataInputSlots() const {
+const VertexInputSlots &SubPass::getVertexDataInputSlots() const {
 	return _vertexDataSlots;
 }
 
@@ -75,6 +77,10 @@ const dx12lib::ShaderRegister &SubPass::getTransformCBufferShaderRegister() cons
 
 const dx12lib::ShaderRegister &SubPass::getPassCBufferShaderRegister() const {
 	return _passCBufferShaderRegister;
+}
+
+bool SubPass::valid() const {
+	return _pGraphicsPso.use_count() > 0;
 }
 
 }

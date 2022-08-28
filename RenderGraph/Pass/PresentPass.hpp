@@ -1,21 +1,16 @@
 #pragma once
-#include <RenderGraph/Pass/BindingPass.h>
+#include <RenderGraph/Pass/ExecutablePass.h>
 
 namespace rgph {
 
-class PresentPass : public BindingPass {
+class PresentPass : public ExecutablePass {
 public:
-	PresentPass(const std::string &passName) : BindingPass(passName) {
+	PresentPass(const std::string &passName) : ExecutablePass(passName, true, false) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_PRESENT;
 	}
 
-	void link(dx12lib::ICommonContext &commonCtx) const override {
-		assert(pRenderTarget != nullptr);
-		pRenderTarget.link(commonCtx);
-	}
-
-	void execute(dx12lib::GraphicsContextProxy pGraphicsCtx) const override {
-		link(*pGraphicsCtx);
+	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
+		// Nothing to do
 	}
 };
 

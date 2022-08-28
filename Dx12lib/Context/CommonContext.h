@@ -135,9 +135,9 @@ interface ICommonContext : IContext {
 		);
 	}
 
-	template<typename T> requires(std::is_base_of_v<IStructuredBuffer, T>)
+	template<typename T> requires(std::is_base_of_v<ISRStructuredBuffer, T>)
 	void setStructuredBuffer(const ShaderRegister &sr, std::shared_ptr<T> pBuffer) {
-		auto pStructuredBuffer = std::static_pointer_cast<IStructuredBuffer>(pBuffer);
+		auto pStructuredBuffer = std::static_pointer_cast<ISRStructuredBuffer>(pBuffer);
 		this->setShaderResourceView(sr, pStructuredBuffer->getSRV());
 	}
 #endif
@@ -242,27 +242,6 @@ interface IComputeContext : virtual ICommonContext {
 	template<typename...Args>
 	std::shared_ptr<UnorderedAccessCube> createUnorderedAccessCube(Args&&...args) {
 		return std::make_shared<dx12libTool::MakeUnorderedAccessCube>(
-			getDevice(),
-			std::forward<Args>(args)...
-		);
-	}
-#endif
-	/////////////////////////////////// ConsumeStructured //////////////////////////////////
-#if 1
-	template<typename...Args>
-	std::shared_ptr<ConsumeStructuredBuffer> createConsumeStructuredBuffer(Args&&...args) {
-		return std::make_shared<dx12libTool::MakeConsumeStructuredBuffer>(
-			getDevice(),
-			getCommandList(),
-			std::forward<Args>(args)...
-		);
-	}
-#endif
-	/////////////////////////////////// AppendStructured //////////////////////////////////
-#if 1
-	template<typename...Args>
-	std::shared_ptr<AppendStructuredBuffer> createAppendStructuredBuffer(Args&&...args) {
-		return std::make_shared<dx12libTool::MakeAppendStructuredBuffer>(
 			getDevice(),
 			std::forward<Args>(args)...
 		);

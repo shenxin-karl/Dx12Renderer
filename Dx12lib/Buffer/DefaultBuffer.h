@@ -6,7 +6,7 @@ namespace dx12lib {
 
 class DefaultBuffer : public IBufferResource {
 public:
-	DefaultBuffer(ID3D12Device *pDevice, 
+	DefaultBuffer(std::weak_ptr<Device> pDevice, 
 		ID3D12GraphicsCommandList *pCmdList, 
 		const void *pData, 
 		size_t sizeInByte,
@@ -19,6 +19,7 @@ public:
 	BufferType getBufferType() const override;
 	size_t getBufferSize() const override;
 private:
+	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource>  _pDefaultResource;
 	WRL::ComPtr<ID3D12Resource>  _pUploaderResource;
 };

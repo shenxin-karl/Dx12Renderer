@@ -29,6 +29,7 @@ private:
 	bool _isCompleted = false;
 	mutable void *_pMapped = nullptr;
 	size_t _elementStride;
+	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
 	std::function<void(IReadBackBuffer *)> _completedCallBack;
 };

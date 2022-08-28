@@ -39,7 +39,7 @@ SRStructuredBuffer::SRStructuredBuffer(std::weak_ptr<Device> pDevice, const void
 	size_t sizeInByte = numElements * stride;
 	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
-		pSharedDevice->getD3DDevice(),
+		pDevice,
 		1,
 		sizeInByte,
 		false

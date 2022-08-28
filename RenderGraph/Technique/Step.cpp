@@ -4,12 +4,12 @@
 #include "RenderGraph/Job/Job.h"
 #include "RenderGraph/Pass/RenderQueuePass.h"
 #include "RenderGraph/Pass/SubPass.h"
+#include "RenderGraph/RenderGraph/RenderGraph.h"
 
 namespace rgph {
 
-Step::Step(Material *pMaterial, std::string subPassName)
-: _pSubPass(nullptr), _pMaterial(pMaterial)
-, _subPassName(std::move(subPassName))
+Step::Step(Material *pMaterial, SubPass *pSubPass)
+: _pSubPass(pSubPass), _pMaterial(pMaterial)
 {
 }
 
@@ -18,7 +18,7 @@ void Step::addBindable(std::shared_ptr<Bindable> pBindable) {
 	_bindables.push_back(std::move(pBindable));
 }
 
-void Step::submit(const Geometry *pGeometry, const TransformCBuffer *pTransformCBuffer) const {
+void Step::submit(const Geometry *pGeometry, const TransformCBufferPtr *pTransformCBuffer) const {
 	assert(_pSubPass != nullptr);
 	_pSubPass->accept({ this, pGeometry, pTransformCBuffer });
 }

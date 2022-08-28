@@ -57,10 +57,18 @@ UnorderedAccessView UnorderedAccess2D::getUAV(size_t mipSlice) const {
 	return UAV;
 }
 
+UnorderedAccess2D::~UnorderedAccess2D() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-	D3D12_RESOURCE_STATES state)
+                                     D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource) {
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);	
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, size_t width, size_t height,
@@ -91,7 +99,8 @@ UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, size_t width
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,11 +188,19 @@ UnorderedAccessView UnorderedAccess2DArray::getPlaneUAV(size_t planeSlice, size_
 	return UAV;
 }
 
+UnorderedAccess2DArray::~UnorderedAccess2DArray() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-	D3D12_RESOURCE_STATES state)
+                                               D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource)
 {
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, size_t width, size_t height,
@@ -214,7 +231,8 @@ UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, si
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,11 +341,19 @@ UnorderedAccessView UnorderedAccessCube::get2DArrayUAV(size_t mipSlice) const {
 	return UAV;
 }
 
+UnorderedAccessCube::~UnorderedAccessCube() {
+	if (auto pSharedDevice = _pDevice.lock()) {
+		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
+			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
+	}
+}
+
 UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, WRL::ComPtr<ID3D12Resource> pResource,
                                          D3D12_RESOURCE_STATES state)
 : _pDevice(pDevice), _pResource(pResource)
 {
-	ResourceStateTracker::addGlobalResourceState(pResource.Get(), state);
+	auto pSharedDevice = pDevice.lock();
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, size_t width, size_t height, size_t mipLevels,
@@ -358,7 +384,8 @@ UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, size_t w
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-	ResourceStateTracker::addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	
+	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 }
 
 

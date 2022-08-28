@@ -103,29 +103,13 @@ BufferType IIndexBuffer::getBufferType() const {
 	return BufferType::IndexBuffer;
 }
 
-BufferType IStructuredBuffer::getBufferType() const {
+BufferType ISRStructuredBuffer::getBufferType() const {
 	return BufferType::StructuredBuffer;
 }
 
-bool IStructuredBuffer::checkSRVState(D3D12_RESOURCE_STATES state) const {
+bool ISRStructuredBuffer::checkSRVState(D3D12_RESOURCE_STATES state) const {
 	return state & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ||
 		   state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-}
-
-BufferType IConsumeStructuredBuffer::getBufferType() const {
-	return BufferType::ConsumeStructuredBuffer;
-}
-
-bool IConsumeStructuredBuffer::checkUAVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-}
-
-BufferType IAppendStructuredBuffer::getBufferType() const {
-	return BufferType::AppendStructuredBuffer;
-}
-
-bool IAppendStructuredBuffer::checkUAVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }
 
 BufferType IUAStructuredBuffer::getBufferType() const {
