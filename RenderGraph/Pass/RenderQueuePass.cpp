@@ -17,7 +17,7 @@ std::shared_ptr<SubPass> RenderQueuePass::getSubPassByName(const std::string &su
 }
 
 void RenderQueuePass::addSubPass(std::shared_ptr<SubPass> pSubPass) {
-	assert(pSubPass == nullptr);
+	assert(pSubPass != nullptr);
 	const std::string &subPassName = pSubPass->getSubPassName();
 	for (auto &subPassPtr : _subPasses) {
 		if (subPassPtr->getSubPassName() == subPassName) {

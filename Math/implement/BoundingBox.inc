@@ -2,6 +2,14 @@ FORCEINLINE AxisAlignedBox::AxisAlignedBox(const Vector3 &min, const Vector3 &ma
 	DX::BoundingBox::CreateFromPoints(_boundingBox, min, max);
 }
 
+FORCEINLINE AxisAlignedBox::AxisAlignedBox(const DX::BoundingBox &box) noexcept : _boundingBox(box) {
+}
+
+FORCEINLINE AxisAlignedBox & AxisAlignedBox::operator=(const DX::BoundingBox &box) noexcept {
+	_boundingBox = box;
+	return *this;
+}
+
 FORCEINLINE AxisAlignedBox AxisAlignedBox::transform(const Matrix4 &trans) const noexcept {
 	AxisAlignedBox ret;
 	_boundingBox.Transform(ret._boundingBox, static_cast<DX::XMMATRIX>(trans));

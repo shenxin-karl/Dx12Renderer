@@ -5,6 +5,12 @@
 
 namespace rgph {
 
+enum class PassType {
+	ExecutablePass,			// compute pass
+	GraphicsPass,			// clear present pass
+	RenderQueuePass,		// draw call
+};
+
 class PassResourceBase;
 class Pass : public NonCopyable {
 public:

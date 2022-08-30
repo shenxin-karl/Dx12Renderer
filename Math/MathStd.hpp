@@ -384,8 +384,8 @@ private:
 class alignas(16) Quaternion {
 public:
 	FORCEINLINE Quaternion() noexcept;
-	FORCEINLINE Quaternion(const Vector3 &axis, float angle) noexcept;
-	FORCEINLINE Quaternion(const float3 &axis, float angle) noexcept;
+	FORCEINLINE Quaternion(const Vector3 &axis, float radian) noexcept;
+	FORCEINLINE Quaternion(const float3 &axis, float radian) noexcept;
 	FORCEINLINE Quaternion(float pitch, float yaw, float roll) noexcept;
 	FORCEINLINE Quaternion(float x, float y, float z, float w) noexcept;
 	FORCEINLINE explicit Quaternion(const float4 &f4) noexcept;
@@ -425,9 +425,11 @@ public:
 	FORCEINLINE AxisAlignedBox() noexcept = default;
 	FORCEINLINE AxisAlignedBox(const Vector3 &min, const Vector3 &max) noexcept;
 	FORCEINLINE AxisAlignedBox(const AxisAlignedBox &) noexcept = default;
+	FORCEINLINE AxisAlignedBox(const DX::BoundingBox &) noexcept;
 	FORCEINLINE AxisAlignedBox &operator=(const AxisAlignedBox &) noexcept = default;
 	FORCEINLINE AxisAlignedBox(AxisAlignedBox &&) noexcept = default;
 	FORCEINLINE AxisAlignedBox &operator=(AxisAlignedBox &&) noexcept = default;
+	FORCEINLINE AxisAlignedBox &operator=(const DX::BoundingBox &) noexcept;
 	FORCEINLINE AxisAlignedBox transform(const Matrix4 &trans) const noexcept;
 	FORCEINLINE AxisAlignedBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
@@ -498,6 +500,7 @@ FORCEINLINE BoolVector::BoolVector(DX::FXMVECTOR vec) noexcept : _vec(vec) {
 FORCEINLINE BoolVector::operator DX::XMVECTOR() const {
 	return _vec;
 }
+
 #endif
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// Matrix3x3

@@ -3,11 +3,11 @@ FORCEINLINE Quaternion::Quaternion() noexcept {
 	_vec = DX::XMQuaternionIdentity();
 }
 
-FORCEINLINE Quaternion::Quaternion(const Vector3 &axis, float angle) noexcept {
-	_vec = DX::XMQuaternionRotationAxis(axis, angle);
+FORCEINLINE Quaternion::Quaternion(const Vector3 &axis, float radian) noexcept {
+	_vec = DX::XMQuaternionRotationAxis(axis, radian);
 }
 
-FORCEINLINE Quaternion::Quaternion(const float3 &axis, float angle) noexcept : Quaternion(Vector3{ axis }, angle) {
+FORCEINLINE Quaternion::Quaternion(const float3 &axis, float radian) noexcept : Quaternion(Vector3{ axis }, radian) {
 
 }
 
