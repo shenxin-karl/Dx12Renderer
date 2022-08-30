@@ -121,6 +121,24 @@ void GraphicsPSO::setInputLayout(const std::vector<D3D12_INPUT_ELEMENT_DESC> &in
 	_psoDesc.InputLayout.pInputElementDescs = _pInputLayout ? _pInputLayout.get() : nullptr;
 }
 
+void GraphicsPSO::setInputLayout(const std::initializer_list<D3D12_INPUT_ELEMENT_DESC> &inputLayout) {
+	_dirty = true;
+	if (!inputLayout.size()) {
+		_psoDesc.InputLayout.NumElements = 0;
+		_psoDesc.InputLayout.pInputElementDescs = nullptr;
+		return;
+	}
+	_pInputLayout = std::shared_ptr<D3D12_INPUT_ELEMENT_DESC[]>(new D3D12_INPUT_ELEMENT_DESC[inputLayout.size()]);
+	size_t idx = 0;
+	for (auto &desc : inputLayout) {
+		_pInputLayout[idx] = desc;
+		++idx;
+	}
+
+	_psoDesc.InputLayout.NumElements = static_cast<UINT>(inputLayout.size());
+	_psoDesc.InputLayout.pInputElementDescs = _pInputLayout ? _pInputLayout.get() : nullptr;
+}
+
 void GraphicsPSO::setPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBProps) {
 	_psoDesc.IBStripCutValue = IBProps;
 	_dirty = true;

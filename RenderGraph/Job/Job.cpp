@@ -1,6 +1,7 @@
 #include "Job.h"
 #include "Geometry.h"
 #include "TransformCBufferPtr.h"
+#include "Dx12lib/Pipeline/ShaderRegister.hpp"
 #include "RenderGraph/Drawable/Drawable.h"
 #include "RenderGraph/Technique/Step.h"
 
@@ -24,7 +25,11 @@ void Job::execute(dx12lib::IGraphicsContext &graphicsCtx,
 
 	pGeometry->bind(graphicsCtx, vertexInputSlots);
 	pStep->bind(graphicsCtx);
-	pTransformCBuffer->bind(graphicsCtx, transformCBufferReg);
+
+	if (pTransformCBuffer != nullptr) {
+		assert(static_cast<bool>(transformCBufferReg.slot));
+		pTransformCBuffer->bind(graphicsCtx, transformCBufferReg);
+	}
 	pGeometry->draw(graphicsCtx);
 }
 }

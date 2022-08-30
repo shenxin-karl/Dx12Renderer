@@ -12,7 +12,6 @@ public:
 	size_t getNumTechnique() const;
 	std::shared_ptr<Technique> getTechnique(size_t idx) const;
 	VertexInputSlots getVertexInputSlots() const;
-	void linkSubPass(RenderGraph &graph);
 	~Material() override;
 protected:
 	std::string _materialName;

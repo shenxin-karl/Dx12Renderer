@@ -23,10 +23,6 @@ VertexInputSlots Material::getVertexInputSlots() const {
 	return _vertexInputSlots;
 }
 
-void Material::linkSubPass(RenderGraph &graph) {
-
-}
-
 Material::~Material() {
 }
 

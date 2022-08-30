@@ -63,6 +63,7 @@ public:
 	void setRenderTargetFormats(UINT numRTVFormat, const DXGI_FORMAT *pRTVFormat, DXGI_FORMAT DSVFormat);
 	void setRenderTargetFormats(const std::vector<DXGI_FORMAT> &RTVFormats, DXGI_FORMAT DSVFormat);
 	void setInputLayout(const std::vector<D3D12_INPUT_ELEMENT_DESC> &inputLayout);
+	void setInputLayout(const std::initializer_list<D3D12_INPUT_ELEMENT_DESC> &inputLayout);
 	void setPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBProps);
 	
 	void setVertexShader(const void *pBinary, size_t size);
