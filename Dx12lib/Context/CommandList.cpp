@@ -141,12 +141,14 @@ std::shared_ptr<SamplerTexture2DArray> CommandList::createDDSTexture2DArrayFromF
 	);
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize >= 1);
-	return std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
+	auto pTex = std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
 		_pDevice,
 		pTexture,
 		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
+	pTex->getD3DResource()->SetName(fileName.c_str());
+	return pTex;
 }
 
 std::shared_ptr<SamplerTexture2DArray> CommandList::createDDSTexture2DArrayFromMemory(const void *pData, size_t sizeInByte) {
@@ -181,12 +183,14 @@ std::shared_ptr<SamplerTextureCube> CommandList::createDDSTextureCubeFromFile(co
 	);
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize == 6);
-	return std::make_shared<dx12libTool::MakeSamplerTextureCube>(
+	auto pTex = std::make_shared<dx12libTool::MakeSamplerTextureCube>(
 		_pDevice, 
 		pTexture, 
 		pUploadHeap, 
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
+	pTex->getD3DResource()->SetName(fileName.c_str());
+	return pTex;
 }
 
 std::shared_ptr<SamplerTextureCube> CommandList::createDDSTextureCubeFromMemory(const void *pData,
@@ -233,7 +237,10 @@ std::shared_ptr<IShaderResource> CommandList::createTextureFromFile(const std::w
 		ThrowIfFailed(DX::LoadFromWICFile(fileName.c_str(), DX::WIC_FLAGS_NONE, &metadata, scratchImage));
 	if (sRGB)
 		metadata.format = DX::MakeSRGB(metadata.format);
-	return createTextureImpl(metadata, scratchImage);
+	
+	auto pTex = createTextureImpl(metadata, scratchImage);
+	pTex->getD3DResource()->SetName(fileName.c_str());
+	return pTex;
 }
 
 std::shared_ptr<IShaderResource> CommandList::createTextureFromMemory(const std::string &extension, 
@@ -744,7 +751,7 @@ std::shared_ptr<IShaderResource> CommandList::createTextureImpl(const DX::TexMet
 
 
 	if (subResources.size() < pTextureResource->GetDesc().MipLevels) {
-		// TODO Éú³É mipmap
+		// TODO ï¿½ï¿½ï¿½ï¿½ mipmap
 	}
 
 	auto pUploader = copyTextureSubResource(pTextureResource,
@@ -761,23 +768,21 @@ std::shared_ptr<IShaderResource> CommandList::createTextureImpl(const DX::TexMet
 				pTextureResource,
 				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
-				);
-		}
-		else if (metadata.arraySize == 6) {
+			);
+		} else if (metadata.arraySize == 6) {
 			return std::make_shared<dx12libTool::MakeSamplerTextureCube>(
 				_pDevice,
 				pTextureResource,
 				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
-				);
-		}
-		else {
+			);
+		} else {
 			return std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
 				_pDevice,
 				pTextureResource,
 				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
-				);
+			);
 		}
 	case DirectX::TEX_DIMENSION_TEXTURE3D:
 	case DirectX::TEX_DIMENSION_TEXTURE1D:

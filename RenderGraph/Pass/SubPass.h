@@ -13,6 +13,7 @@ public:
 	const std::string &getSubPassName() const;
 	void addBindable(std::shared_ptr<Bindable> pBindable);
 	std::shared_ptr<Bindable> getBindableByType(BindableType bindableType) const;
+	virtual void bind(dx12lib::IGraphicsContext &graphicsCtx) const;
 	virtual void accept(const Job &job);
 	virtual void execute(dx12lib::IGraphicsContext &graphicsCtx) const;
 	virtual void reset();

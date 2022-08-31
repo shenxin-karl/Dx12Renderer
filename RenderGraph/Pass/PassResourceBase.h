@@ -1,4 +1,5 @@
 #pragma once
+#include <d3d12.h>
 #include <string>
 
 
@@ -32,7 +33,10 @@ protected:
 	// 在编译 RenderGraph 时使用, 确定 Pass 执行的先后顺序
 	bool _finished;
 	bool _activated;
-	const PassResourceBase *_pResourceSource;	
+	const PassResourceBase *_pResourceSource;
+public:
+	constexpr static D3D12_RESOURCE_STATES kNoneType = static_cast<D3D12_RESOURCE_STATES>(-1);
+	D3D12_RESOURCE_STATES preExecuteState = kNoneType;
 };
 
 }

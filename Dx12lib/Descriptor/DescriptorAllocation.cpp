@@ -101,7 +101,8 @@ bool DescriptorAllocation::isValid() const noexcept {
 void DescriptorAllocation::free() {
 	if (isNull() || _pPage == nullptr)
 		return;
-	_pPage->free(std::move(*this));
+	auto pPage = _pPage;
+	pPage->free(std::move(*this));
 }
 
 void DescriptorAllocation::reset() noexcept {

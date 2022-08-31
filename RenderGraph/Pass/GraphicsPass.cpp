@@ -32,8 +32,7 @@ void GraphicsPass::bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx) {
 	size_t height = pDepthStencil->getHeight();
 	if (customViewport.has_value()) {
 		graphicsCtx.setViewport(*customViewport);
-	}
-	else {
+	} else {
 		graphicsCtx.setViewport(D3D12_VIEWPORT{
 			.TopLeftX = 0.f,
 			.TopLeftY = 0.f,

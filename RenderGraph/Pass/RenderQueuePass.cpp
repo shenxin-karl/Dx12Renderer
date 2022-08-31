@@ -41,7 +41,7 @@ void RenderQueuePass::execute(dx12lib::DirectContextProxy pDirectCtx) {
 	if (!hasJob)
 		return;
 
-	ExecutablePass::execute(pDirectCtx);
+	GraphicsPass::execute(pDirectCtx);
 	auto iter = _subPasses.begin();
 	while (iter != _subPasses.end()) {
 		auto pSubPass = *iter;
@@ -53,9 +53,11 @@ void RenderQueuePass::execute(dx12lib::DirectContextProxy pDirectCtx) {
 			continue;
 		}
 
+		pSubPass->bind(*pDirectCtx);
 		auto passCBufferShaderRegister = pSubPass->getPassCBufferShaderRegister();
-		if (_pPassCBuffer == nullptr && passCBufferShaderRegister.slot && !passCBufferShaderRegister.slot.isSampler())
+		if (_pPassCBuffer != nullptr && passCBufferShaderRegister.slot && !passCBufferShaderRegister.slot.isSampler())
 			pDirectCtx->setConstantBuffer(passCBufferShaderRegister, _pPassCBuffer);
+
 		pSubPass->execute(*pDirectCtx);
 		++iter;
 	}

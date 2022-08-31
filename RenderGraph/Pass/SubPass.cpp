@@ -28,6 +28,10 @@ std::shared_ptr<Bindable> SubPass::getBindableByType(BindableType bindableType) 
 	return nullptr;
 }
 
+void SubPass::bind(dx12lib::IGraphicsContext &graphicsCtx) const {
+	graphicsCtx.setGraphicsPSO(_pGraphicsPso.lock());
+}
+
 void SubPass::accept(const Job &job) {
 	_jobs.push_back(job);
 }
@@ -36,7 +40,6 @@ void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx) const {
 	if (_jobs.empty())
 		return;
 
-	graphicsCtx.setGraphicsPSO(_pGraphicsPso.lock());
 	for (auto &pBindable : _bindables)
 		pBindable->bind(graphicsCtx);
 

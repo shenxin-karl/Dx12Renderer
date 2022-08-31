@@ -20,7 +20,8 @@ public:
 		assert(_linkResourceFunc != nullptr);
 		_linkResourceFunc();
 		assert(_pResource != nullptr);
-		commonCtx.transitionBarrier(_pResource, preExecuteState);
+		if (preExecuteState != kNoneType)
+			commonCtx.transitionBarrier(_pResource, preExecuteState);
 	}
 
 	PassResourcePtr &operator=(std::nullptr_t) {
@@ -84,8 +85,6 @@ private:
 private:
 	std::shared_ptr<T> _pResource;
 	std::function<void()> _linkResourceFunc;
-public:
-	D3D12_RESOURCE_STATES preExecuteState = D3D12_RESOURCE_STATE_COMMON;
 };
 
 

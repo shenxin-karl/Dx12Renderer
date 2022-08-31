@@ -7,6 +7,9 @@ std::shared_ptr<SamplerTextureBindable> SamplerTextureBindable::make(dx12lib::Sh
 	size_t mipMap,
 	const std::source_location &sourceLocation)
 {
+	assert(shaderRegister.slot && !shaderRegister.slot.isSampler());
+	assert(pShaderResource != nullptr);
+
 	auto pBindable = std::make_shared<SamplerTextureBindable>(sourceLocation);
 	pBindable->_mipMap = mipMap;
 	pBindable->_shaderRegister = shaderRegister;

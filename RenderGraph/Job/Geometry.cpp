@@ -14,6 +14,9 @@ void Geometry::bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlo
 		assert(_pVertexBufferList[slot] != nullptr);
 		graphicsCtx.setVertexBuffer(_pVertexBufferList[slot], static_cast<UINT>(slot));
 	}
+
+	if (_pIndexBuffer != nullptr)
+		graphicsCtx.setIndexBuffer(_pIndexBuffer);
 }
 
 void Geometry::setVertexBuffer(size_t idx, std::shared_ptr<dx12lib::VertexBuffer> pVertexBuffer) {
@@ -77,6 +80,7 @@ void Geometry::genDrawArgs() {
 
 	_drawArgs.vertexCount = _pMesh->getPositions().size();
 	_drawArgs.indexCount = _pMesh->getIndices().size();
+	_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 }
 
 void Geometry::draw(dx12lib::IGraphicsContext &graphicsCtx) const {
