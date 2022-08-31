@@ -71,4 +71,8 @@ void RenderQueuePass::setPassCBuffer(std::shared_ptr<dx12lib::IConstantBuffer> p
 	_pPassCBuffer = std::move(pCBuffer);
 }
 
+PassType RenderQueuePass::getPassType() const {
+	return PassType::RenderQueuePass;
+}
+
 }

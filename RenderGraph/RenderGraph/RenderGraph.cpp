@@ -2,20 +2,30 @@
 #include <format>
 #include <iostream>
 #include "RenderGraph/Pass/ExecutablePass.h"
-#include "RenderGraph/Pass/Pass.h"
+#include "RenderGraph/Pass/RenderQueuePass.h"
 
 namespace rgph {
 
-void RenderGraph::addPass(std::shared_ptr<Pass> pPass) {
+void RenderGraph::addPass(std::shared_ptr<ExecutablePass> pPass) {
 	assert(getPass(pPass->getPassName()) == nullptr);
 	_finalized = false;
+	if (pPass->getPassType() == PassType::RenderQueuePass)
+		_renderQueuePasses.push_back(std::static_pointer_cast<RenderQueuePass>(pPass));
 	_passes.push_back(std::move(pPass));
 }
 
-Pass * RenderGraph::getPass(const std::string &passName) const {
+ExecutablePass * RenderGraph::getPass(const std::string &passName) const {
 	for (auto &pPass : _passes) {
 		if (pPass->getPassName() == passName)
 			return pPass.get();
+	}
+	return nullptr;
+}
+
+RenderQueuePass * RenderGraph::getRenderQueuePass(const std::string &passName) const {
+	for (auto &pRenderQueuePass : _renderQueuePasses) {
+		if (pRenderQueuePass->getPassName() == passName)
+			return pRenderQueuePass.get();
 	}
 	return nullptr;
 }
@@ -43,26 +53,23 @@ void RenderGraph::finalize() {
 	_executeList.clear();
 
 	auto passes = _passes;
-	std::vector<std::shared_ptr<Pass>> pendingExecuteList;
+	std::vector<std::shared_ptr<ExecutablePass>> pendingExecuteList;
 
 	while (!passes.empty()) {
 		auto iter = passes.begin();
 		while (iter != passes.end()) {
 			auto pPass = *iter;
 			bool shouldExecute = true;
-			auto pBindingPass = std::dynamic_pointer_cast<ExecutablePass>(pPass);
-			if (pBindingPass != nullptr) {
-				for (auto *pPassResource : pBindingPass->getPassResources()) {
-					if (!pPassResource->isActivated())
-						continue;
+			for (auto *pPassResource : pPass->getPassResources()) {
+				if (!pPassResource->isActivated())
+					continue;
 
-					bool linkState = pPassResource->tryLink();
-					auto *pResourceSource = pPassResource->getResourceSource();
-					bool isFinished = pResourceSource == nullptr || pResourceSource->isFinished();
-					if (!linkState || !isFinished) {
-						shouldExecute = false;
-						break;
-					}
+				bool linkState = pPassResource->tryLink();
+				auto *pResourceSource = pPassResource->getResourceSource();
+				bool isFinished = pResourceSource == nullptr || pResourceSource->isFinished();
+				if (!linkState || !isFinished) {
+					shouldExecute = false;
+					break;
 				}
 			}
 

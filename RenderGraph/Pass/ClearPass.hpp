@@ -6,9 +6,9 @@
 
 namespace rgph {
 
-class ClearRtPass : public ExecutablePass {
+class ClearRtPass : public GraphicsPass {
 public:
-	ClearRtPass(const std::string &passName) : ExecutablePass(passName, true, false) {
+	ClearRtPass(const std::string &passName) : GraphicsPass(passName, true, false) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	}
 
@@ -18,9 +18,9 @@ public:
 	}
 };
 
-class ClearDsPass : public ExecutablePass {
+class ClearDsPass : public GraphicsPass {
 public:
-	ClearDsPass(const std::string &passName) : ExecutablePass(passName, false, true) {
+	ClearDsPass(const std::string &passName) : GraphicsPass(passName, false, true) {
 		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}
 
@@ -35,9 +35,9 @@ public:
 	}
 };
 
-class ClearPass : public ExecutablePass {
+class ClearPass : public GraphicsPass {
 public:
-	ClearPass(const std::string &passName) : ExecutablePass(passName) {
+	ClearPass(const std::string &passName) : GraphicsPass(passName, true, true) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		pDepthStencil.preExecuteState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}

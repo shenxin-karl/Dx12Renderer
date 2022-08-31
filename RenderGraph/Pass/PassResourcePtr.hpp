@@ -2,6 +2,8 @@
 #include <cassert>
 #include <functional>
 #include <RenderGraph/Pass/PassResourceBase.h>
+#include <Dx12lib/Texture/TextureStd.h>
+#include <Dx12lib/Buffer/BufferStd.h>
 
 namespace rgph {
 
@@ -26,8 +28,8 @@ public:
 		return *this;
 	}
 
-	~PassResourcePtr() {
-		reset();
+	~PassResourcePtr() override {
+		PassResourcePtr::reset();
 	}
 
 	operator std::shared_ptr<T> &() noexcept {

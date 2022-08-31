@@ -6,18 +6,21 @@
 
 namespace rgph {
 
-class Pass;
+class RenderQueuePass;
+class ExecutablePass;
 class RenderGraph {
 public:
-	void addPass(std::shared_ptr<Pass> pPass);
-	Pass *getPass(const std::string &passName) const;
+	void addPass(std::shared_ptr<ExecutablePass> pPass);
+	ExecutablePass *getPass(const std::string &passName) const;
+	RenderQueuePass *getRenderQueuePass(const std::string &passName) const;
 	void execute(dx12lib::DirectContextProxy pDirectCtx);
 	void reset();
 	void finalize();
 private:
 	bool _finalized = false;
-	std::vector<std::shared_ptr<Pass>> _passes;
-	std::vector<std::shared_ptr<Pass>> _executeList;
+	std::vector<std::shared_ptr<ExecutablePass>> _passes;
+	std::vector<std::shared_ptr<ExecutablePass>> _executeList;
+	std::vector<std::shared_ptr<RenderQueuePass>> _renderQueuePasses;
 };
 
 }

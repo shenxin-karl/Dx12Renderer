@@ -34,4 +34,10 @@ struct IDrawable : virtual public NonCopyable {
 	virtual void submit(const TechniqueFlag &techniqueFlag) const = 0;
 };
 
+enum class PassType {
+	ExecutablePass,			// compute pass
+	GraphicsPass,			// clear present pass
+	RenderQueuePass,		// draw call
+};
+
 }

@@ -1,11 +1,11 @@
 #pragma once
-#include <RenderGraph/Pass/ExecutablePass.h>
+#include <RenderGraph/Pass/GraphicsPass.h>
 
 namespace rgph {
 
-class PresentPass : public ExecutablePass {
+class PresentPass : public GraphicsPass {
 public:
-	PresentPass(const std::string &passName) : ExecutablePass(passName) {
+	PresentPass(const std::string &passName) : GraphicsPass(passName, true, false) {
 		pRenderTarget.preExecuteState = D3D12_RESOURCE_STATE_PRESENT;
 	}
 
