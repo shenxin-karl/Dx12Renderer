@@ -17,6 +17,11 @@ public:
 	void setTransformStore(const TransformStore &store);
 	void setTransformCBuffer(FRConstantBufferPtr<TransformStore> pTransformCBuf);
 	void bind(dx12lib::IGraphicsContext &graphicsCtx, const dx12lib::ShaderRegister &shaderRegister) const;
+	explicit operator bool() const;
+	friend bool operator==(const TransformCBufferPtr &lhs, const TransformCBufferPtr &rhs);
+	friend bool operator!=(const TransformCBufferPtr &, const TransformCBufferPtr &);
+	friend bool operator!=(const TransformCBufferPtr &lhs, std::nullptr_t);
+	friend bool operator!=(std::nullptr_t, const TransformCBufferPtr &rhs);
 protected:
 	FRConstantBufferPtr<TransformStore> _pTransformCBuf;
 };

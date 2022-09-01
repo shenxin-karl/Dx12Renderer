@@ -30,4 +30,23 @@ void TransformCBufferPtr::bind(dx12lib::IGraphicsContext &graphicsCtx, const dx1
 	graphicsCtx.setConstantBuffer(shaderRegister, _pTransformCBuf);
 }
 
+TransformCBufferPtr::operator bool() const {
+	return _pTransformCBuf != nullptr;
+}
+
+bool operator==(const TransformCBufferPtr &lhs, const TransformCBufferPtr &rhs) {
+	return lhs._pTransformCBuf == rhs._pTransformCBuf;
+}
+
+bool operator!=(const TransformCBufferPtr &transformCBufferPtr, const TransformCBufferPtr &transformCBuffer) {
+	return !(transformCBufferPtr == transformCBuffer);
+}
+
+bool operator!=(const TransformCBufferPtr &lhs, std::nullptr_t) {
+	return lhs._pTransformCBuf != nullptr;
+}
+
+bool operator!=(std::nullptr_t, const TransformCBufferPtr &rhs) {
+	return rhs._pTransformCBuf != nullptr;
+}
 }
