@@ -21,6 +21,7 @@ public:
 	static size_t getIndexStrideByFormat(DXGI_FORMAT format);
 private:
 	DXGI_FORMAT                    _indexFormat;
+	IndexBufferView				   _indexBufferView;
 	std::unique_ptr<DefaultBuffer> _pDefaultBuffer;
 };
 

@@ -19,6 +19,12 @@ VertexBuffer::VertexBuffer(std::weak_ptr<Device> pDevice,
 		pData, 
 		sizeInByte
 	);
+
+	_vertexBufferView = VertexBufferView {
+		_pDefaultBuffer->getAddress(),
+		static_cast<UINT>(getBufferSize()),
+		static_cast<UINT>(_vertexStride)
+	};
 }
 
 WRL::ComPtr<ID3D12Resource> VertexBuffer::getD3DResource() const {
@@ -39,11 +45,7 @@ size_t VertexBuffer::getVertexStride() const {
 }
 
 VertexBufferView VertexBuffer::getVertexBufferView() const {
-	return VertexBufferView(
-		_pDefaultBuffer->getAddress(), 
-		static_cast<UINT>(getBufferSize()), 
-		static_cast<UINT>(_vertexStride)
-	);
+	return _vertexBufferView;
 }
 
 }

@@ -90,7 +90,7 @@ enum class RegisterSpace : size_t {
 constexpr static std::size_t kSwapChainBufferCount	= 2;			// 2个交换缓冲区
 constexpr static std::size_t kFrameResourceCount = 3;				// 3个帧资源
 constexpr static std::size_t kMaxDescriptorTables = 64;				// 64个描述符表项
-constexpr static std::size_t kDynamicDescriptorPerHeap = 64;		// 64个动态堆描述符
+constexpr static std::size_t kDynamicDescriptorPerHeap = 1024;		// 1024个动态堆描述符
 constexpr static std::size_t kDynamicDescriptorHeapCount = 2;		// 2中堆(Shader资源堆, 采样器堆)
 constexpr static std::size_t kVertexBufferSlotCount = 16;			// 16个顶点槽位
 constexpr static std::size_t kMaxRenderTargetCount = 8;				// 最多8个渲染目标

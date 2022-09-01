@@ -21,6 +21,7 @@ public:
 	VertexBufferView getVertexBufferView() const override;
 private:
 	size_t _vertexStride;
+	VertexBufferView _vertexBufferView;
 	std::unique_ptr<DefaultBuffer> _pDefaultBuffer;
 };
 

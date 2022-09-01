@@ -21,6 +21,12 @@ IndexBuffer::IndexBuffer(std::weak_ptr<Device> pDevice,
 		pData, 
 		sizeInByte
 	);
+
+	_indexBufferView = IndexBufferView{
+		_pDefaultBuffer->getAddress(),
+		static_cast<UINT>(getBufferSize()),
+		_indexFormat
+	};
 }
 WRL::ComPtr<ID3D12Resource> IndexBuffer::getD3DResource() const {
 	return _pDefaultBuffer->getD3DResource();
@@ -43,7 +49,7 @@ DXGI_FORMAT IndexBuffer::getIndexFormat() const {
 }
 
 IndexBufferView IndexBuffer::getIndexBufferView() const {
-	return IndexBufferView(_pDefaultBuffer->getAddress(), static_cast<UINT>(getBufferSize()), _indexFormat);
+	return _indexBufferView;
 }
 
 size_t IndexBuffer::getIndexStrideByFormat(DXGI_FORMAT format) {

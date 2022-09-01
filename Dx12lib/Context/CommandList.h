@@ -44,8 +44,8 @@ public:
 
 	void setViewport(const D3D12_VIEWPORT &viewport) override;
 	void setScissorRect(const D3D12_RECT &rect) override;
-	void setVertexBuffer(std::shared_ptr<VertexBuffer> pVertBuffer, UINT slot) override;
-	void setIndexBuffer(std::shared_ptr<IndexBuffer> pIndexBuffer) override;
+	void setVertexBuffer(const std::shared_ptr<VertexBuffer> &pVertBuffer, UINT slot) override;
+	void setIndexBuffer(const std::shared_ptr<IndexBuffer> &pIndexBuffer) override;
 	void setGraphicsPSO(std::shared_ptr<GraphicsPSO> pPipelineStateObject) override;
 	void setPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY topology) override;
 	void setStencilRef(UINT stencilRef) override;

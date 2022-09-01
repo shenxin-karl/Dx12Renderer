@@ -21,7 +21,7 @@ public:
 	friend bool operator==(const TransformCBufferPtr &lhs, const TransformCBufferPtr &rhs);
 	friend bool operator!=(const TransformCBufferPtr &, const TransformCBufferPtr &);
 	friend bool operator!=(const TransformCBufferPtr &lhs, std::nullptr_t);
-	friend bool operator!=(std::nullptr_t, const TransformCBufferPtr &rhs);
+	friend bool operator==(std::nullptr_t, const TransformCBufferPtr &rhs);
 protected:
 	FRConstantBufferPtr<TransformStore> _pTransformCBuf;
 };

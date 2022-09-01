@@ -104,7 +104,7 @@ interface ICommonContext : IContext {
 	}
 
 	template<typename T> requires(std::is_base_of_v<IConstantBuffer, T> || std::is_same_v<IConstantBuffer, T>)
-	void setConstantBuffer(const ShaderRegister &sr, std::shared_ptr<T> pBuffer) {
+	void setConstantBuffer(const ShaderRegister &sr, const std::shared_ptr<T> &pBuffer) {
 		auto pConstantBuffer = std::static_pointer_cast<IConstantBuffer>(pBuffer);
 		this->setConstantBufferView(sr, pConstantBuffer->getCBV());
 	}
@@ -136,7 +136,7 @@ interface ICommonContext : IContext {
 	}
 
 	template<typename T> requires(std::is_base_of_v<ISRStructuredBuffer, T>)
-	void setStructuredBuffer(const ShaderRegister &sr, std::shared_ptr<T> pBuffer) {
+	void setStructuredBuffer(const ShaderRegister &sr, const std::shared_ptr<T> &pBuffer) {
 		auto pStructuredBuffer = std::static_pointer_cast<ISRStructuredBuffer>(pBuffer);
 		this->setShaderResourceView(sr, pStructuredBuffer->getSRV());
 	}
@@ -195,8 +195,8 @@ interface IGraphicsContext : virtual ICommonContext {
 
 	virtual void setViewport(const D3D12_VIEWPORT &viewport) = 0;
 	virtual void setScissorRect(const D3D12_RECT &rect) = 0;
-	virtual void setVertexBuffer(std::shared_ptr<VertexBuffer> pVertBuffer, UINT slot = 0) = 0;
-	virtual void setIndexBuffer(std::shared_ptr<IndexBuffer> pIndexBuffer) = 0;
+	virtual void setVertexBuffer(const std::shared_ptr<VertexBuffer> &pVertBuffer, UINT slot = 0) = 0;
+	virtual void setIndexBuffer(const std::shared_ptr<IndexBuffer> &pIndexBuffer) = 0;
 	virtual void setGraphicsPSO(std::shared_ptr<GraphicsPSO> pPipelineStateObject) = 0;
 	virtual void setPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY topology) = 0;
 	virtual void setStencilRef(UINT stencilRef) = 0;

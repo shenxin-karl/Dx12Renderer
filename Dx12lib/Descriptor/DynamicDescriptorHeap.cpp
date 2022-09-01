@@ -130,7 +130,7 @@ size_t DynamicDescriptorHeap::computeStaleDescriptorCount() const {
 	return numStaleDescriptors;
 }
 
-void DynamicDescriptorHeap::commitDescriptorTables(std::shared_ptr<CommandList> pCmdList, const CommitFunc &setFunc) {
+void DynamicDescriptorHeap::commitDescriptorTables(const std::shared_ptr<CommandList> &pCmdList, const CommitFunc &setFunc) {
 	size_t numDescriptors = computeStaleDescriptorCount();
 	if (numDescriptors == 0)
 		return;

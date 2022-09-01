@@ -46,7 +46,7 @@ bool operator!=(const TransformCBufferPtr &lhs, std::nullptr_t) {
 	return lhs._pTransformCBuf != nullptr;
 }
 
-bool operator!=(std::nullptr_t, const TransformCBufferPtr &rhs) {
-	return rhs._pTransformCBuf != nullptr;
+bool operator==(std::nullptr_t, const TransformCBufferPtr &rhs) {
+	return rhs._pTransformCBuf == nullptr;
 }
 }

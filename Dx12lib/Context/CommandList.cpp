@@ -369,7 +369,7 @@ void CommandList::setScissorRect(const D3D12_RECT &rect) {
 	_pCommandList->RSSetScissorRects(1, &rect);
 }
 
-void CommandList::setVertexBuffer(std::shared_ptr<VertexBuffer> pVertBuffer, UINT slot /*= 0 */) {
+void CommandList::setVertexBuffer(const std::shared_ptr<VertexBuffer> &pVertBuffer, UINT slot /*= 0 */) {
 	assert(pVertBuffer != nullptr);
 	assert(slot < kVertexBufferSlotCount);
 	assert(_currentGPUState.pPSO != nullptr);
@@ -382,7 +382,7 @@ void CommandList::setVertexBuffer(std::shared_ptr<VertexBuffer> pVertBuffer, UIN
 	}
 }
 
-void CommandList::setIndexBuffer(std::shared_ptr<IndexBuffer> pIndexBuffer) {
+void CommandList::setIndexBuffer(const std::shared_ptr<IndexBuffer> &pIndexBuffer) {
 	assert(pIndexBuffer != nullptr);
 	assert(_currentGPUState.pPSO != nullptr);
 	if (StateCMove(_currentGPUState.pIndexBuffer, pIndexBuffer.get()))

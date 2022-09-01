@@ -23,7 +23,7 @@ private:
 	size_t computeStaleDescriptorCount() const;
 
 	using CommitFunc = std::function<void(ID3D12GraphicsCommandList *, UINT, D3D12_GPU_DESCRIPTOR_HANDLE)>;
-	void commitDescriptorTables(std::shared_ptr<CommandList> pCmdList, const CommitFunc &setFunc);
+	void commitDescriptorTables(const std::shared_ptr<CommandList> &pCmdList, const CommitFunc &setFunc);
 
 	WRL::ComPtr<ID3D12DescriptorHeap> requestDescriptorHeap();
 

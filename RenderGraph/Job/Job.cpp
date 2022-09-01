@@ -13,6 +13,7 @@ Job::Job(const Step *pStep, const Geometry *pGeometry, const TransformCBufferPtr
 	assert(pStep != nullptr);
 	assert(pGeometry != nullptr);
 	assert(pTransformCBuffer != nullptr);
+	assert((*pTransformCBuffer) != nullptr);
 }
 
 void Job::execute(dx12lib::IGraphicsContext &graphicsCtx, 
