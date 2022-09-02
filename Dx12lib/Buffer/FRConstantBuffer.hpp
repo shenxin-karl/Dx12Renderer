@@ -18,7 +18,7 @@ public:
 	BYTE *getMappedPtr() override;
 	const BYTE *getMappedPtr() const override;
 	void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) override;
-	ConstantBufferView getCBV() const override;
+	const ConstantBufferView & getCBV() const override;
 
 	template<typename T>
 	T *map() {
@@ -44,8 +44,8 @@ public:
 		return CBufferVisitor<T>(cmap<T>());
 	}
 private:
-	DescriptorAllocation _descriptor;
 	std::unique_ptr<BYTE[]> _pObject;
+	ConstantBufferView _cbvs[kFrameResourceCount];
 	mutable std::unique_ptr<UploadBuffer> _pUploadBuffer;
 	mutable std::bitset<kFrameResourceCount> _bufferDirty;
 };
@@ -66,14 +66,14 @@ public:
 	BYTE *getMappedPtr() override;
 	const BYTE *getMappedPtr() const override;
 	void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) override;
-	ConstantBufferView getCBV() const override;
+	const ConstantBufferView & getCBV() const override;
 	T *map();
 	const T *cmap() const;
 	CBufferVisitor<T> visit();
 	CBufferVisitor<const T> visit() const;
 private:
 	T _object;
-	DescriptorAllocation _descriptor;
+	ConstantBufferView _cbvs[kFrameResourceCount];
 	mutable std::unique_ptr<UploadBuffer> _pUploadBuffer;
 	mutable std::bitset<kFrameResourceCount> _bufferDirty;
 };
@@ -90,7 +90,7 @@ FRConstantBuffer<T>::FRConstantBuffer(std::weak_ptr<Device> pDevice, const T &ob
 		true
 	);
 
-	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kFrameResourceCount);
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kFrameResourceCount);
 	for (size_t i = 0; i < kFrameResourceCount; ++i) {
 		_bufferDirty.set(i, true);
 		D3D12_CONSTANT_BUFFER_VIEW_DESC cbv;
@@ -98,8 +98,9 @@ FRConstantBuffer<T>::FRConstantBuffer(std::weak_ptr<Device> pDevice, const T &ob
 		cbv.SizeInBytes = static_cast<UINT>(UploadBuffer::calcConstantBufferByteSize(sizeof(T)));
 		pSharedDevice->getD3DDevice()->CreateConstantBufferView(
 			&cbv,
-			_descriptor.getCPUHandle(i)
+			descriptor.getCPUHandle(i)
 		);
+		_cbvs[i] = ConstantBufferView(descriptor, this, i);
 	}
 }
 template <typename T>
@@ -141,13 +142,13 @@ void FRConstantBuffer<T>::updateBuffer(const void *pData, size_t sizeInByte, siz
 }
 
 template <typename T>
-ConstantBufferView FRConstantBuffer<T>::getCBV() const {
+const ConstantBufferView & FRConstantBuffer<T>::getCBV() const {
 	size_t frameIndex = FrameIndexProxy::getConstantFrameIndexRef();
 	if (_bufferDirty.test(frameIndex)) {
 		_pUploadBuffer->copyData(frameIndex, &_object, sizeof(T), 0);
 		_bufferDirty.set(frameIndex, false);
 	}
-	return ConstantBufferView(_descriptor, this, frameIndex);
+	return _cbvs[frameIndex];
 }
 
 template <typename T>

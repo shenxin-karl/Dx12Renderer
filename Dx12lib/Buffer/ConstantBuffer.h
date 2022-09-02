@@ -18,7 +18,7 @@ public:
 	BYTE *getMappedPtr() override;
 	const BYTE *getMappedPtr() const override;
 	void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) override;
-	ConstantBufferView getCBV() const override;
+	const ConstantBufferView & getCBV() const override;
 
 	template<typename T>
 	CBufferVisitor<T> visit() {

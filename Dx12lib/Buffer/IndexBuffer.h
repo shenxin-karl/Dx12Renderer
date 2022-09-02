@@ -17,7 +17,7 @@ public:
 	size_t getIndexCount() const override;
 	size_t getIndexStride() const override;
 	DXGI_FORMAT getIndexFormat() const override;
-	IndexBufferView getIndexBufferView() const override;
+	const IndexBufferView &getIndexBufferView() const override;
 	static size_t getIndexStrideByFormat(DXGI_FORMAT format);
 private:
 	DXGI_FORMAT                    _indexFormat;

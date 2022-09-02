@@ -10,8 +10,8 @@ public:
 	size_t getBufferSize() const override;
 	size_t getElementCount() const override;
 	size_t getElementStride() const override;
-	UnorderedAccessView getUAV() const override;
-	ShaderResourceView getSRV() const override;
+	const UnorderedAccessView & getUAV() const override;
+	const ShaderResourceView & getSRV() const override;
 protected:
 	UAStructuredBuffer(std::weak_ptr<Device> pDevice, 
 		std::shared_ptr<CommandList> pCmdList,

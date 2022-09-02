@@ -11,6 +11,7 @@ DynamicDescriptorHeap::DynamicDescriptorHeap(std::weak_ptr<Device> pDevice,
 	size_t numDescriptorsPerHeap)
 : _numDescriptorsPerHeap(numDescriptorsPerHeap), _heapType(heapType), _pDevice(pDevice)
 {
+	_pD3DDevice = pDevice.lock()->getD3DDevice();
 	_descriptorHandleIncrementSize = pDevice.lock()->getD3DDevice()->GetDescriptorHandleIncrementSize(heapType);
 	reset();
 }
@@ -39,11 +40,11 @@ void DynamicDescriptorHeap::parseRootSignature(std::shared_ptr<RootSignature> pR
 	assert(currentOffset < kMaxDescriptorTables);
 }
 
-void DynamicDescriptorHeap::commitStagedDescriptorForDraw(std::shared_ptr<CommandList> pCmdList) {
+void DynamicDescriptorHeap::commitStagedDescriptorForDraw(CommandList *pCmdList) {
 	commitDescriptorTables(pCmdList, &ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable);
 }
 
-void DynamicDescriptorHeap::commitStagedDescriptorForDispatch(std::shared_ptr<CommandList> pCmdList) {
+void DynamicDescriptorHeap::commitStagedDescriptorForDispatch(CommandList *pCmdList) {
 	commitDescriptorTables(pCmdList, &ID3D12GraphicsCommandList::SetComputeRootDescriptorTable);
 }
 
@@ -124,13 +125,13 @@ size_t DynamicDescriptorHeap::computeStaleDescriptorCount() const {
 
 	size_t numStaleDescriptors = 0;
 	for (std::size_t i = 0; i < kMaxDescriptorTables; ++i) {
-		if (_staleDescriptorTableBitMask.test(i))
-			numStaleDescriptors += _descriptorTableCache[i]._numDescriptors;
+		int flag = _staleDescriptorTableBitMask.test(i);
+		numStaleDescriptors += flag * _descriptorTableCache[i]._numDescriptors;
 	}
 	return numStaleDescriptors;
 }
 
-void DynamicDescriptorHeap::commitDescriptorTables(const std::shared_ptr<CommandList> &pCmdList, const CommitFunc &setFunc) {
+void DynamicDescriptorHeap::commitDescriptorTables(CommandList *pCmdList, const CommitFunc &setFunc) {
 	size_t numDescriptors = computeStaleDescriptorCount();
 	if (numDescriptors == 0)
 		return;
@@ -145,7 +146,6 @@ void DynamicDescriptorHeap::commitDescriptorTables(const std::shared_ptr<Command
 		pCmdList->setDescriptorHeap(_heapType, _pCurrentDescriptorHeap.Get());
 	}
 
-	auto *pD3DDevice = _pDevice.lock()->getD3DDevice();
 	for (std::size_t rootIndex = 0; rootIndex < kMaxDescriptorTables; ++rootIndex) {
 		if (!_staleDescriptorTableBitMask.test(rootIndex))
 			continue;
@@ -156,14 +156,14 @@ void DynamicDescriptorHeap::commitDescriptorTables(const std::shared_ptr<Command
 		UINT pDstDescriptorRangeSizes[] = { numDescriptors };
 
 		// todo-note: 如果 CopyDescriptors 出现错误, 检查 _pBaseHandle 的值是否有效. 确认是不是 stageDescriptors 时没有设置 offset
-		pD3DDevice->CopyDescriptors(
+		_pD3DDevice->CopyDescriptors(
 			1, pDstDescriptorRangeStarts, pDstDescriptorRangeSizes, 
 			numDescriptors, pSrcHandle, nullptr,
 			_heapType
 		);
 
 		// Bind to the Command list 
-		setFunc(pD3DCommandList, static_cast<UINT>(rootIndex), _currentGPUDescriptorHandle);
+		(pD3DCommandList->*setFunc)(static_cast<UINT>(rootIndex), _currentGPUDescriptorHandle);
 		_numFreeHandles -= numDescriptors;
 		_currentCPUDescriptorHandle.Offset(static_cast<INT>(numDescriptors), static_cast<UINT>(_descriptorHandleIncrementSize));
 		_currentGPUDescriptorHandle.Offset(static_cast<INT>(numDescriptors), static_cast<UINT>(_descriptorHandleIncrementSize));

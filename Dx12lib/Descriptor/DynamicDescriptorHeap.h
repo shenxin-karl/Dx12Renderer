@@ -10,8 +10,8 @@ public:
 		size_t numDescriptorsPerHeap
 	);
 	void parseRootSignature(std::shared_ptr<RootSignature> pRootSignature);
-	void commitStagedDescriptorForDraw(std::shared_ptr<CommandList> pCmdList);
-	void commitStagedDescriptorForDispatch(std::shared_ptr<CommandList> pCmdList);
+	void commitStagedDescriptorForDraw(CommandList *pCmdList);
+	void commitStagedDescriptorForDispatch(CommandList *pCmdList);
 	void reset();
 	void stageDescriptor(const ShaderRegister &sr, const D3D12_CPU_DESCRIPTOR_HANDLE &descriptor);
 	void stageDescriptors(size_t rootParameterIndex,
@@ -22,8 +22,8 @@ public:
 private:
 	size_t computeStaleDescriptorCount() const;
 
-	using CommitFunc = std::function<void(ID3D12GraphicsCommandList *, UINT, D3D12_GPU_DESCRIPTOR_HANDLE)>;
-	void commitDescriptorTables(const std::shared_ptr<CommandList> &pCmdList, const CommitFunc &setFunc);
+	using CommitFunc = decltype(&ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable);
+	void commitDescriptorTables(CommandList *pCmdList, const CommitFunc &setFunc);
 
 	WRL::ComPtr<ID3D12DescriptorHeap> requestDescriptorHeap();
 
@@ -43,6 +43,7 @@ private:
 	D3D12_DESCRIPTOR_HEAP_TYPE        _heapType;
 	DescriptorTableCache              _descriptorTableCache[kMaxDescriptorTables];
 	std::weak_ptr<Device>             _pDevice;
+	ID3D12Device					 *_pD3DDevice;
 	std::bitset<kMaxDescriptorTables> _descriptorTableBitMask;
 	std::bitset<kMaxDescriptorTables> _staleDescriptorTableBitMask;
 	DescriptorHandleCache             _descriptorHandleCache;

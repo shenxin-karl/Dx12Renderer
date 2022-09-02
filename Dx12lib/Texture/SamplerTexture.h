@@ -8,7 +8,7 @@ namespace dx12lib {
 class SamplerTexture2D : public IShaderResource2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
 	~SamplerTexture2D() override;
 protected:
 	SamplerTexture2D(std::weak_ptr<Device> pDevice,
@@ -26,8 +26,8 @@ private:
 class SamplerTexture2DArray : public IShaderResource2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~SamplerTexture2DArray() override;
 protected:
 	SamplerTexture2DArray(std::weak_ptr<Device> pDevice,
@@ -46,8 +46,8 @@ private:
 class SamplerTextureCube : public IShaderResourceCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
 	~SamplerTextureCube() override;
 protected:
 	SamplerTextureCube(std::weak_ptr<Device> pDevice,

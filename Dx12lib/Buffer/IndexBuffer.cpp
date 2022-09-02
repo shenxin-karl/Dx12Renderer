@@ -48,7 +48,7 @@ DXGI_FORMAT IndexBuffer::getIndexFormat() const {
 	return _indexFormat;
 }
 
-IndexBufferView IndexBuffer::getIndexBufferView() const {
+const IndexBufferView &IndexBuffer::getIndexBufferView() const {
 	return _indexBufferView;
 }
 

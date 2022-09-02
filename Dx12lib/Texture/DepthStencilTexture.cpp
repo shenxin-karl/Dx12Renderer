@@ -2,6 +2,7 @@
 #include <Dx12lib/Resource/ResourceStateTracker.h>
 #include <Dx12lib/Device/Device.h>
 
+
 namespace dx12lib {
 
 WRL::ComPtr<ID3D12Resource> DepthStencil2D::getD3DResource() const {
@@ -12,12 +13,12 @@ D3D12_CLEAR_VALUE DepthStencil2D::getClearValue() const {
 	return _clearValue;
 }
 
-ShaderResourceView DepthStencil2D::getSRV(size_t mipSlice) const {
+const ShaderResourceView & DepthStencil2D::getSRV(size_t mipSlice) const {
 	assert(mipSlice == 0);
 	return _shaderResourceView;
 }
 
-DepthStencilView DepthStencil2D::getDSV() const {
+const DepthStencilView & DepthStencil2D::getDSV() const {
 	return _depthStencilView;
 }
 

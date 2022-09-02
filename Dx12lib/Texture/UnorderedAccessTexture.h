@@ -8,8 +8,8 @@ namespace dx12lib {
 class UnorderedAccess2D : public IUnorderedAccess2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	UnorderedAccessView getUAV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const UnorderedAccessView & getUAV(size_t mipSlice = 0) const override;
 	~UnorderedAccess2D() override;
 protected:
 	UnorderedAccess2D(std::weak_ptr<Device> pDevice,
@@ -32,9 +32,9 @@ private:
 class UnorderedAccess2DArray : public IUnorderedAccess2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
-	UnorderedAccessView getPlaneUAV(size_t planeSlice, size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
+	const UnorderedAccessView & getPlaneUAV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~UnorderedAccess2DArray() override;
 protected:
 	UnorderedAccess2DArray(std::weak_ptr<Device> pDevice,
@@ -59,10 +59,10 @@ private:
 class UnorderedAccessCube : public IUnorderedAccessCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
-	UnorderedAccessView getFaceUAV(CubeFace face, size_t mipSlice = 0) const override;
-	UnorderedAccessView get2DArrayUAV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
+	const UnorderedAccessView & getFaceUAV(CubeFace face, size_t mipSlice = 0) const override;
+	const UnorderedAccessView & get2DArrayUAV(size_t mipSlice = 0) const override;
 	~UnorderedAccessCube() override;
 protected:
 	UnorderedAccessCube(std::weak_ptr<Device> pDevice,

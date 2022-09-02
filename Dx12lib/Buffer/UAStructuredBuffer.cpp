@@ -22,11 +22,11 @@ size_t UAStructuredBuffer::getElementStride() const {
 	return _elementStride;
 }
 
-UnorderedAccessView UAStructuredBuffer::getUAV() const {
+const UnorderedAccessView & UAStructuredBuffer::getUAV() const {
 	return _uav;
 }
 
-ShaderResourceView UAStructuredBuffer::getSRV() const {
+const ShaderResourceView & UAStructuredBuffer::getSRV() const {
 	return _srv;
 }
 

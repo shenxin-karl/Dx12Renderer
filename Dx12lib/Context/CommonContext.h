@@ -105,7 +105,7 @@ interface ICommonContext : IContext {
 
 	template<typename T> requires(std::is_base_of_v<IConstantBuffer, T> || std::is_same_v<IConstantBuffer, T>)
 	void setConstantBuffer(const ShaderRegister &sr, const std::shared_ptr<T> &pBuffer) {
-		auto pConstantBuffer = std::static_pointer_cast<IConstantBuffer>(pBuffer);
+		auto pConstantBuffer = static_cast<IConstantBuffer *>(pBuffer.get());
 		this->setConstantBufferView(sr, pConstantBuffer->getCBV());
 	}
 #endif
@@ -137,7 +137,7 @@ interface ICommonContext : IContext {
 
 	template<typename T> requires(std::is_base_of_v<ISRStructuredBuffer, T>)
 	void setStructuredBuffer(const ShaderRegister &sr, const std::shared_ptr<T> &pBuffer) {
-		auto pStructuredBuffer = std::static_pointer_cast<ISRStructuredBuffer>(pBuffer);
+		auto pStructuredBuffer = static_cast<ISRStructuredBuffer *>(pBuffer.get());
 		this->setShaderResourceView(sr, pStructuredBuffer->getSRV());
 	}
 #endif

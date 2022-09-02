@@ -56,7 +56,7 @@ void ConstantBuffer::updateBuffer(const void *pData, size_t sizeInByte, size_t o
 	_pUploadBuffer->copyData(0, pData, sizeInByte, offset);
 }
 
-ConstantBufferView ConstantBuffer::getCBV() const {
+const ConstantBufferView & ConstantBuffer::getCBV() const {
 	return _constantBufferView;
 }
 

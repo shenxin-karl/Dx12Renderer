@@ -18,7 +18,7 @@ public:
 	size_t getBufferSize() const override;
 	size_t getVertexCount() const override;
 	size_t getVertexStride() const override;
-	VertexBufferView getVertexBufferView() const override;
+	const VertexBufferView &getVertexBufferView() const override;
 private:
 	size_t _vertexStride;
 	VertexBufferView _vertexBufferView;

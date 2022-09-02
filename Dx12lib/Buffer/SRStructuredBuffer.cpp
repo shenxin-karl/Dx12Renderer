@@ -25,8 +25,8 @@ void SRStructuredBuffer::updateBuffer(const void *pData, size_t sizeInByte, size
 	_pUploadBuffer->copyData(0, pData, sizeInByte, offset);
 }
 
-ShaderResourceView SRStructuredBuffer::getSRV() const {
-	return ShaderResourceView(_descriptor, this);
+const ShaderResourceView & SRStructuredBuffer::getSRV() const {
+	return _srv;
 }
 
 SRStructuredBuffer::~SRStructuredBuffer() {
@@ -37,7 +37,7 @@ SRStructuredBuffer::SRStructuredBuffer(std::weak_ptr<Device> pDevice, const void
 {
 	auto pSharedDevice = pDevice.lock();
 	size_t sizeInByte = numElements * stride;
-	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
 		pDevice,
 		1,
@@ -61,8 +61,9 @@ SRStructuredBuffer::SRStructuredBuffer(std::weak_ptr<Device> pDevice, const void
 	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
 		_pUploadBuffer->getD3DResource().Get(),
 		&desc,
-		_descriptor.getCPUHandle()
+		descriptor.getCPUHandle()
 	);
+	_srv = ShaderResourceView(descriptor, this);
 }
 
 }

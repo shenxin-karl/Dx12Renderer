@@ -6,8 +6,8 @@ namespace dx12lib {
 class RenderTarget2D : public IRenderTarget2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	RenderTargetView getRTV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const RenderTargetView & getRTV(size_t mipSlice = 0) const override;
 	D3D12_CLEAR_VALUE getClearValue() const override;
 	~RenderTarget2D() override;
 protected:
@@ -33,9 +33,9 @@ private:
 class RenderTarget2DArray : public IRenderTarget2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
-	RenderTargetView getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
+	const RenderTargetView & getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~RenderTarget2DArray() override;
 protected:
 	RenderTarget2DArray(std::weak_ptr<Device> pDevice,
@@ -61,9 +61,9 @@ private:
 class RenderTargetCube : public IRenderTargetCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	ShaderResourceView getSRV(size_t mipSlice = 0) const override;
-	ShaderResourceView getFaceSRV(CubeFace face, size_t mipSlice) const override;
-	RenderTargetView getFaceRTV(CubeFace face, size_t mipSlice = 0) const override;
+	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
+	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice) const override;
+	const RenderTargetView & getFaceRTV(CubeFace face, size_t mipSlice = 0) const override;
 	~RenderTargetCube() override;
 protected:
 	RenderTargetCube(std::weak_ptr<Device> pDevice,

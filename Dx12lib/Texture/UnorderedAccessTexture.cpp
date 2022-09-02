@@ -9,7 +9,7 @@ WRL::ComPtr<ID3D12Resource> UnorderedAccess2D::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView UnorderedAccess2D::getSRV(size_t mipSlice) const {
+const ShaderResourceView & UnorderedAccess2D::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -31,10 +31,10 @@ ShaderResourceView UnorderedAccess2D::getSRV(size_t mipSlice) const {
 	);
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-UnorderedAccessView UnorderedAccess2D::getUAV(size_t mipSlice) const {
+const UnorderedAccessView & UnorderedAccess2D::getUAV(size_t mipSlice) const {
 	if (_uavMgr.exist(mipSlice))
 		return _uavMgr.get(mipSlice);
 
@@ -54,7 +54,7 @@ UnorderedAccessView UnorderedAccess2D::getUAV(size_t mipSlice) const {
 	);
 	UnorderedAccessView UAV(descriptor, this);
 	_uavMgr.set(mipSlice, UAV);
-	return UAV;
+	return _uavMgr.get(mipSlice);
 }
 
 UnorderedAccess2D::~UnorderedAccess2D() {
@@ -109,7 +109,7 @@ WRL::ComPtr<ID3D12Resource> UnorderedAccess2DArray::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView UnorderedAccess2DArray::getSRV(size_t mipSlice) const {
+const ShaderResourceView & UnorderedAccess2DArray::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -131,10 +131,10 @@ ShaderResourceView UnorderedAccess2DArray::getSRV(size_t mipSlice) const {
 	);
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView UnorderedAccess2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
+const ShaderResourceView & UnorderedAccess2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
 	assert(planeSlice < getPlaneSlice());
 	ViewManager<ShaderResourceView> &planeSrvMgr = _planeSrvMgr[planeSlice];
 	if (planeSrvMgr.exist(mipSlice))
@@ -158,10 +158,10 @@ ShaderResourceView UnorderedAccess2DArray::getPlaneSRV(size_t planeSlice, size_t
 	);
 	ShaderResourceView SRV(descriptor, this);
 	planeSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-UnorderedAccessView UnorderedAccess2DArray::getPlaneUAV(size_t planeSlice, size_t mipSlice) const {
+const UnorderedAccessView & UnorderedAccess2DArray::getPlaneUAV(size_t planeSlice, size_t mipSlice) const {
 	assert(planeSlice < getPlaneSlice());
 	ViewManager<UnorderedAccessView> &planeUavMgr = _planeUavMgr[planeSlice];
 	if (planeUavMgr.exist(mipSlice))
@@ -185,7 +185,7 @@ UnorderedAccessView UnorderedAccess2DArray::getPlaneUAV(size_t planeSlice, size_
 	);
 	UnorderedAccessView UAV(descriptor, this);
 	planeUavMgr.set(mipSlice, UAV);
-	return UAV;
+	return planeUavMgr.get(mipSlice);
 }
 
 UnorderedAccess2DArray::~UnorderedAccess2DArray() {
@@ -241,7 +241,7 @@ WRL::ComPtr<ID3D12Resource> UnorderedAccessCube::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView UnorderedAccessCube::getSRV(size_t mipSlice) const {
+const ShaderResourceView & UnorderedAccessCube::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -261,10 +261,10 @@ ShaderResourceView UnorderedAccessCube::getSRV(size_t mipSlice) const {
 	);
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView UnorderedAccessCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
+const ShaderResourceView & UnorderedAccessCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
 	ViewManager<ShaderResourceView> &cubeSrvMgr = _cubeSrvMgr[face];
 	if (cubeSrvMgr.exist(mipSlice))
 		return cubeSrvMgr.get(mipSlice);
@@ -287,10 +287,10 @@ ShaderResourceView UnorderedAccessCube::getFaceSRV(CubeFace face, size_t mipSlic
 	);
 	ShaderResourceView SRV(descriptor, this);
 	cubeSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-UnorderedAccessView UnorderedAccessCube::getFaceUAV(CubeFace face, size_t mipSlice) const {
+const UnorderedAccessView & UnorderedAccessCube::getFaceUAV(CubeFace face, size_t mipSlice) const {
 	ViewManager<UnorderedAccessView> &cubeUavMgr = _cubeUavMgr[face];
 	if (cubeUavMgr.exist(mipSlice))
 		return cubeUavMgr.get(mipSlice);
@@ -313,10 +313,10 @@ UnorderedAccessView UnorderedAccessCube::getFaceUAV(CubeFace face, size_t mipSli
 	);
 	UnorderedAccessView UAV(descriptor, this);
 	cubeUavMgr.set(mipSlice, UAV);
-	return UAV;
+	return cubeUavMgr.get(mipSlice);
 }
 
-UnorderedAccessView UnorderedAccessCube::get2DArrayUAV(size_t mipSlice) const {
+const UnorderedAccessView & UnorderedAccessCube::get2DArrayUAV(size_t mipSlice) const {
 	if (_2DArrayUavMgr.exist(mipSlice))
 		return _2DArrayUavMgr.get(mipSlice);
 
@@ -338,7 +338,7 @@ UnorderedAccessView UnorderedAccessCube::get2DArrayUAV(size_t mipSlice) const {
 	);
 	UnorderedAccessView UAV(descriptor, this);
 	_2DArrayUavMgr.set(mipSlice, UAV);
-	return UAV;
+	return _2DArrayUavMgr.get(mipSlice);
 }
 
 UnorderedAccessCube::~UnorderedAccessCube() {

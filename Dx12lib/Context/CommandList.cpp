@@ -335,7 +335,7 @@ void CommandList::aliasBarrierImpl(std::shared_ptr<IResource> pBefore,
 }
 
 void CommandList::flushResourceBarriers() {
-	_pResourceStateTracker->flushResourceBarriers(shared_from_this());
+	_pResourceStateTracker->flushResourceBarriers(this);
 }
 
 /// ******************************************** GraphicsContext api ********************************************
@@ -464,7 +464,7 @@ void CommandList::drawInstanced(size_t vertCount,
 	assert(_currentGPUState.debugCheckDraw());
 	flushResourceBarriers();
 	for (auto &pDynamicHeap : _pDynamicDescriptorHeaps)
-		pDynamicHeap->commitStagedDescriptorForDraw(shared_from_this());
+		pDynamicHeap->commitStagedDescriptorForDraw(this);
 	_pCommandList->DrawInstanced(
 		static_cast<UINT>(vertCount), 
 		static_cast<UINT>(instanceCount),
@@ -482,7 +482,7 @@ void CommandList::drawIndexedInstanced(size_t indexCountPerInstance,
 	assert(_currentGPUState.debugCheckDrawIndex());
 	flushResourceBarriers();
 	for (auto &pDynamicHeap : _pDynamicDescriptorHeaps)
-		pDynamicHeap->commitStagedDescriptorForDraw(shared_from_this());
+		pDynamicHeap->commitStagedDescriptorForDraw(this);
 	_pCommandList->DrawIndexedInstanced(
 		static_cast<UINT>(indexCountPerInstance), 
 		static_cast<UINT>(instanceCount), 
@@ -585,7 +585,7 @@ void CommandList::dispatch(size_t GroupCountX, size_t GroupCountY, size_t GroupC
 	assert(GroupCountZ >= 1);
 	flushResourceBarriers();
 	for (auto &pDynamicHeap : _pDynamicDescriptorHeaps)
-		pDynamicHeap->commitStagedDescriptorForDispatch(shared_from_this());
+		pDynamicHeap->commitStagedDescriptorForDispatch(this);
 	_pCommandList->Dispatch(
 		static_cast<UINT>(GroupCountX), 
 		static_cast<UINT>(GroupCountY), 

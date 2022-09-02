@@ -44,7 +44,7 @@ size_t VertexBuffer::getVertexStride() const {
 	return _vertexStride;
 }
 
-VertexBufferView VertexBuffer::getVertexBufferView() const {
+const VertexBufferView &VertexBuffer::getVertexBufferView() const {
 	return _vertexBufferView;
 }
 

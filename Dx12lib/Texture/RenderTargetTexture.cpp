@@ -8,7 +8,7 @@ WRL::ComPtr<ID3D12Resource> RenderTarget2D::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView RenderTarget2D::getSRV(size_t mipSlice) const {
+const ShaderResourceView & RenderTarget2D::getSRV(size_t mipSlice) const {
 	assert(mipSlice < _pResource->GetDesc().MipLevels);
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
@@ -34,10 +34,10 @@ ShaderResourceView RenderTarget2D::getSRV(size_t mipSlice) const {
 	D3D12_RESOURCE_STATES expectResourceState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-RenderTargetView RenderTarget2D::getRTV(size_t mipSlice) const {
+const RenderTargetView & RenderTarget2D::getRTV(size_t mipSlice) const {
 	if (_rtvMgr.exist(mipSlice))
 		return _rtvMgr.get(mipSlice);
 
@@ -59,7 +59,7 @@ RenderTargetView RenderTarget2D::getRTV(size_t mipSlice) const {
 
 	RenderTargetView RTV(descriptor, this);
 	_rtvMgr.set(mipSlice, RTV);
-	return RTV;
+	return _rtvMgr.get(mipSlice);
 }
 
 D3D12_CLEAR_VALUE RenderTarget2D::getClearValue() const {
@@ -142,7 +142,7 @@ WRL::ComPtr<ID3D12Resource> RenderTarget2DArray::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView RenderTarget2DArray::getSRV(size_t mipSlice) const {
+const ShaderResourceView & RenderTarget2DArray::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -166,10 +166,10 @@ ShaderResourceView RenderTarget2DArray::getSRV(size_t mipSlice) const {
 
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView RenderTarget2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
+const ShaderResourceView & RenderTarget2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
 	assert(planeSlice < getPlaneSlice());
 	ViewManager<ShaderResourceView> &planeSrvMgr = _planeSrvMgr[planeSlice];
 	if (planeSrvMgr.exist(mipSlice))
@@ -195,10 +195,10 @@ ShaderResourceView RenderTarget2DArray::getPlaneSRV(size_t planeSlice, size_t mi
 
 	ShaderResourceView SRV(descriptor, this);
 	planeSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-RenderTargetView RenderTarget2DArray::getPlaneRTV(size_t planeSlice, size_t mipSlice) const {
+const RenderTargetView & RenderTarget2DArray::getPlaneRTV(size_t planeSlice, size_t mipSlice) const {
 	assert(planeSlice < getPlaneSlice());
 	ViewManager<RenderTargetView> &planeRtvMgr = _planeRtvMgr[planeSlice];
 	if (planeRtvMgr.exist(mipSlice))
@@ -221,7 +221,7 @@ RenderTargetView RenderTarget2DArray::getPlaneRTV(size_t planeSlice, size_t mipS
 
 	RenderTargetView RTV(descriptor, this);
 	planeRtvMgr.set(mipSlice, RTV);
-	return RTV;
+	return planeRtvMgr.get(mipSlice);
 }
 
 RenderTarget2DArray::~RenderTarget2DArray() {
@@ -294,7 +294,7 @@ WRL::ComPtr<ID3D12Resource> RenderTargetCube::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView RenderTargetCube::getSRV(size_t mipSlice) const {
+const ShaderResourceView & RenderTargetCube::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -316,10 +316,10 @@ ShaderResourceView RenderTargetCube::getSRV(size_t mipSlice) const {
 
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView RenderTargetCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
+const ShaderResourceView & RenderTargetCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
 	ViewManager<ShaderResourceView> &cubeSrvMgr = _cubeSrvMgr[face];
 	if (cubeSrvMgr.exist(mipSlice))
 		return cubeSrvMgr.get(mipSlice);
@@ -344,10 +344,10 @@ ShaderResourceView RenderTargetCube::getFaceSRV(CubeFace face, size_t mipSlice) 
 
 	ShaderResourceView SRV(descriptor, this);
 	cubeSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-RenderTargetView RenderTargetCube::getFaceRTV(CubeFace face, size_t mipSlice) const {
+const RenderTargetView & RenderTargetCube::getFaceRTV(CubeFace face, size_t mipSlice) const {
 	ViewManager<RenderTargetView> &cubeRtvMgr = _cubeRtvMgr[face];
 	if (cubeRtvMgr.exist(mipSlice))
 		return cubeRtvMgr.get(mipSlice);
@@ -369,7 +369,7 @@ RenderTargetView RenderTargetCube::getFaceRTV(CubeFace face, size_t mipSlice) co
 
 	RenderTargetView RTV(descriptor, this);
 	cubeRtvMgr.set(mipSlice, RTV);
-	return RTV;
+	return cubeRtvMgr.get(mipSlice);
 }
 
 RenderTargetCube::~RenderTargetCube() {

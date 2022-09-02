@@ -1,4 +1,5 @@
 #include "FRSRStructuredBuffer.hpp"
+#include "Dx12lib/Pipeline/ShaderRegister.hpp"
 
 namespace dx12lib {
 
@@ -7,7 +8,6 @@ FRSRStructuredBuffer<RawData>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevic
 {
 	size_t sizeInByte = numElements * stride;
 	auto pSharedDevice = pDevice.lock();
-	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	_pUploadBuffer = std::make_unique<UploadBuffer>(
 		pDevice,
 		kFrameResourceCount,
@@ -23,7 +23,7 @@ FRSRStructuredBuffer<RawData>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevic
 	desc.Buffer.StructureByteStride = static_cast<UINT>(stride);
 	desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-	_descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kFrameResourceCount);
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kFrameResourceCount);
 	for (size_t i = 0; i < kFrameResourceCount; ++i) {
 		if (pData != nullptr)
 			_pUploadBuffer->copyData(i, pData, sizeInByte, 0);
@@ -32,8 +32,9 @@ FRSRStructuredBuffer<RawData>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevic
 		pSharedDevice->getD3DDevice()->CreateShaderResourceView(
 			_pUploadBuffer->getD3DResource().Get(),
 			&desc,
-			_descriptor.getCPUHandle(i)
+			descriptor.getCPUHandle(i)
 		);
+		_srvs[i] = ShaderResourceView(descriptor, this, i);
 	}
 }
 
@@ -59,9 +60,9 @@ void FRSRStructuredBuffer<RawData>::updateBuffer(const void *pData, size_t sizeI
 	_pUploadBuffer->copyData(frameIndex, pData, sizeInByte, offset);
 }
 
-ShaderResourceView FRSRStructuredBuffer<RawData>::getSRV() const {
+const ShaderResourceView & FRSRStructuredBuffer<RawData>::getSRV() const {
 	size_t frameIndex = FrameIndexProxy::getConstantFrameIndexRef();
-	return ShaderResourceView(_descriptor, this, frameIndex);
+	return _srvs[frameIndex];
 }
 
 }

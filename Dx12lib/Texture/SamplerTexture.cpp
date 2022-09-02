@@ -8,7 +8,7 @@ WRL::ComPtr<ID3D12Resource> SamplerTexture2D::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView SamplerTexture2D::getSRV(size_t mipSlice) const {
+const ShaderResourceView & SamplerTexture2D::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -33,7 +33,7 @@ ShaderResourceView SamplerTexture2D::getSRV(size_t mipSlice) const {
 
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
 SamplerTexture2D::~SamplerTexture2D() {
@@ -58,7 +58,7 @@ WRL::ComPtr<ID3D12Resource> SamplerTexture2DArray::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView SamplerTexture2DArray::getSRV(size_t mipSlice) const {
+const ShaderResourceView & SamplerTexture2DArray::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -85,10 +85,10 @@ ShaderResourceView SamplerTexture2DArray::getSRV(size_t mipSlice) const {
 
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView SamplerTexture2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
+const ShaderResourceView & SamplerTexture2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
 	ViewManager<ShaderResourceView> &planeSrvMgr = _planeSrvMgr[planeSlice];
 	if (planeSrvMgr.exist(mipSlice))
 		return planeSrvMgr.get(mipSlice);
@@ -113,7 +113,7 @@ ShaderResourceView SamplerTexture2DArray::getPlaneSRV(size_t planeSlice, size_t 
 	);
 	ShaderResourceView SRV(descriptor, this);
 	planeSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
 SamplerTexture2DArray::~SamplerTexture2DArray() {
@@ -137,7 +137,7 @@ WRL::ComPtr<ID3D12Resource> SamplerTextureCube::getD3DResource() const {
 	return _pResource;
 }
 
-ShaderResourceView SamplerTextureCube::getSRV(size_t mipSlice) const {
+const ShaderResourceView & SamplerTextureCube::getSRV(size_t mipSlice) const {
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
@@ -161,10 +161,10 @@ ShaderResourceView SamplerTextureCube::getSRV(size_t mipSlice) const {
 
 	ShaderResourceView SRV(descriptor, this);
 	_srvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
-ShaderResourceView SamplerTextureCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
+const ShaderResourceView & SamplerTextureCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
 	ViewManager<ShaderResourceView> &faceSrvMgr = _faceMapSrvMgr[face];
 	if (faceSrvMgr.exist(mipSlice))
 		return faceSrvMgr.get(mipSlice);
@@ -189,7 +189,7 @@ ShaderResourceView SamplerTextureCube::getFaceSRV(CubeFace face, size_t mipSlice
 
 	ShaderResourceView SRV(descriptor, this);
 	faceSrvMgr.set(mipSlice, SRV);
-	return SRV;
+	return _srvMgr.get(mipSlice);
 }
 
 SamplerTextureCube::~SamplerTextureCube() {
