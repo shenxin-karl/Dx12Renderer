@@ -16,9 +16,9 @@ RenderTarget2D::~RenderTarget2D() {
 }
 
 RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> 
-                               pDevice, WRL::ComPtr<ID3D12Resource> pResource,
-                               D3D12_RESOURCE_STATES state, 
-                               const D3D12_CLEAR_VALUE *pClearValue)
+	pDevice, WRL::ComPtr<ID3D12Resource> pResource,
+	D3D12_RESOURCE_STATES state, 
+	const D3D12_CLEAR_VALUE *pClearValue)
 : _pResource(pResource)
 {
 	setDevice(pDevice);
@@ -32,20 +32,18 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device>
 }
 
 RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size_t height,
-	const D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
+	const D3D12_CLEAR_VALUE *pClearValue)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
-	if (format == DXGI_FORMAT_UNKNOWN)
-		format = pSharedDevice->getDesc().backBufferFormat;
+	if (pClearValue == nullptr) {
+		_clearValue.Format = pSharedDevice->getDesc().backBufferFormat;
+		pClearValue = &_clearValue;
+	} else {
+		assert(pClearValue->Format != DXGI_FORMAT_UNKNOWN);
+		_clearValue = *pClearValue;
+	}
 
-	if (pClearValue == nullptr)
-		_clearValue.Format = format;
-	else
-		_clearValue = *pClearValue;	
-
-
-	pClearValue = &_clearValue;
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;
@@ -53,7 +51,7 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size
 	renderTargetDesc.Height = static_cast<UINT>(height);
 	renderTargetDesc.DepthOrArraySize = 1;
 	renderTargetDesc.MipLevels = 1;
-	renderTargetDesc.Format = format;
+	renderTargetDesc.Format = pClearValue->Format;
 	renderTargetDesc.SampleDesc.Count = 1;
 	renderTargetDesc.SampleDesc.Quality = 0;
 	renderTargetDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -98,22 +96,19 @@ RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 	size_t width, 
 	size_t height, 
 	size_t planeSlice,
-	const D3D12_CLEAR_VALUE *pClearValue, 
-	DXGI_FORMAT format)
+	const D3D12_CLEAR_VALUE *pClearValue)
 {
 	setDevice(pDevice);
 	assert(planeSlice >= 1);
 	auto pSharedDevice = pDevice.lock();
-	if (format == DXGI_FORMAT_UNKNOWN)
-		format = pSharedDevice->getDesc().backBufferFormat;
-
-	if (pClearValue == nullptr)
-		_clearValue.Format = format;
-	else
+	if (pClearValue == nullptr) {
+		_clearValue.Format = pSharedDevice->getDesc().backBufferFormat;
+		pClearValue = &_clearValue;
+	} else {
+		assert(pClearValue->Format != DXGI_FORMAT_UNKNOWN);
 		_clearValue = *pClearValue;
+	}
 
-
-	pClearValue = &_clearValue;
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;
@@ -121,7 +116,7 @@ RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 	renderTargetDesc.Height = static_cast<UINT>(height);
 	renderTargetDesc.DepthOrArraySize = static_cast<UINT16>(planeSlice);
 	renderTargetDesc.MipLevels = 1;
-	renderTargetDesc.Format = format;
+	renderTargetDesc.Format = pClearValue->Format;
 	renderTargetDesc.SampleDesc.Count = 1;
 	renderTargetDesc.SampleDesc.Quality = 0;
 	renderTargetDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -151,8 +146,8 @@ RenderTargetCube::~RenderTargetCube() {
 }
 
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice,
-                                   WRL::ComPtr<ID3D12Resource> pResource,
-                                   D3D12_RESOURCE_STATES state)
+	WRL::ComPtr<ID3D12Resource> pResource,
+	D3D12_RESOURCE_STATES state)
 :  _pResource(pResource)
 {
 	setDevice(pDevice);
@@ -161,19 +156,18 @@ RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice,
 }
 
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice, size_t width, size_t height,
-	D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
+	D3D12_CLEAR_VALUE *pClearValue)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
-	if (format == DXGI_FORMAT_UNKNOWN)
-		format = pSharedDevice->getDesc().backBufferFormat;
-
-	if (pClearValue == nullptr)
-		_clearValue.Format = format;
-	else
+	if (pClearValue == nullptr) {
+		_clearValue.Format = pSharedDevice->getDesc().backBufferFormat;
+		pClearValue = &_clearValue;
+	} else {
+		assert(pClearValue->Format != DXGI_FORMAT_UNKNOWN);
 		_clearValue = *pClearValue;
-	
-	pClearValue = &_clearValue;
+	}
+
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;
@@ -181,7 +175,7 @@ RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice, size_t width, 
 	renderTargetDesc.Height = static_cast<UINT>(height);
 	renderTargetDesc.DepthOrArraySize = 6;
 	renderTargetDesc.MipLevels = 1;
-	renderTargetDesc.Format = format;
+	renderTargetDesc.Format = pClearValue->Format;
 	renderTargetDesc.SampleDesc.Count = 1;
 	renderTargetDesc.SampleDesc.Quality = 0;
 	renderTargetDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;

@@ -176,6 +176,15 @@ interface ICommonContext : IContext {
 			std::forward<Args>(args)...
 		);
 	}
+
+	template<typename...Args>
+	std::shared_ptr<DepthStencil2DArray> createDepthStencil2DArray(Args&& ...args) {
+		return std::make_shared<dx12libTool::MakeDepthStencil2DArray>(
+			getDevice(),
+			std::forward<Args>(args)...
+		);
+	}
+
 #endif
 	/////////////////////////////////// ReadBackBuffer //////////////////////////////////
 #if 1

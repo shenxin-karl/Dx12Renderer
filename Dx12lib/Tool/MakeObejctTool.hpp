@@ -66,6 +66,7 @@ using MakeRenderTarget2DArray = _MakeObjectTool<RenderTarget2DArray>;
 using MakeRenderTargetCube = _MakeObjectTool<RenderTargetCube>;
 
 using MakeDepthStencil2D = _MakeObjectTool<DepthStencil2D>;
+using MakeDepthStencil2DArray = _MakeObjectTool<DepthStencil2DArray>;
 
 using MakeUnorderedAccess2D = _MakeObjectTool<UnorderedAccess2D>;
 using MakeUnorderedAccess2DArray = _MakeObjectTool<UnorderedAccess2DArray>;

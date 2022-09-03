@@ -19,4 +19,11 @@ private:
 	mutable DepthStencilView _dsv;
 };
 
+interface IDepthStencil2DArray : IDepthStencil, ITextureResource2DArray {
+	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
+	const DepthStencilView &getPlaneDSV(size_t planeSlice) const;
+private:
+	mutable std::map<size_t, DepthStencilView> _planeDsvMgr;
+};
+
 }

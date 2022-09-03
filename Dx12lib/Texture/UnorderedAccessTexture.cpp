@@ -25,7 +25,7 @@ UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, WRL::ComPtr<
 }
 
 UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, size_t width, size_t height,
-	const D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
+	DXGI_FORMAT format)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
@@ -49,7 +49,7 @@ UnorderedAccess2D::UnorderedAccess2D(std::weak_ptr<Device> pDevice, size_t width
 		D3D12_HEAP_FLAG_NONE,
 		RVPtr(unorderedAccessDesc),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-		pClearValue,
+		nullptr,
 		IID_PPV_ARGS(&_pResource)
 	));
 	
@@ -79,7 +79,7 @@ UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, WR
 }
 
 UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, size_t width, size_t height,
-	size_t planeSlice, const D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
+	size_t planeSlice, DXGI_FORMAT format)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
@@ -103,7 +103,7 @@ UnorderedAccess2DArray::UnorderedAccess2DArray(std::weak_ptr<Device> pDevice, si
 		D3D12_HEAP_FLAG_NONE,
 		RVPtr(unorderedAccessDesc),
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-		pClearValue,
+		nullptr,
 		IID_PPV_ARGS(&_pResource)
 	));
 	
@@ -133,7 +133,7 @@ UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, WRL::Com
 }
 
 UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, size_t width, size_t height, size_t mipLevels,
-	const D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
+	DXGI_FORMAT format)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
@@ -157,7 +157,7 @@ UnorderedAccessCube::UnorderedAccessCube(std::weak_ptr<Device> pDevice, size_t w
 		D3D12_HEAP_FLAG_NONE,
 		&unorderedAccessDesc,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-		pClearValue,
+		nullptr,
 		IID_PPV_ARGS(&_pResource)
 	));
 	

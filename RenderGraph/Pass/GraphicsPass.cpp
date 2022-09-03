@@ -9,10 +9,14 @@ GraphicsPass::GraphicsPass(const std::string &passName, bool rtActive, bool dsAc
 , pDepthStencil(this, "DepthStencil", dsActive)
 {
 	pGetRTVFunc = [](const dx12lib::IRenderTarget *ptr) -> const dx12lib::RenderTargetView & {
-		return dynamic_cast<const dx12lib::IRenderTarget2D *>(ptr)->getRTV(0);
+		auto *pResource = dynamic_cast<const dx12lib::IRenderTarget2D *>(ptr);
+		assert(pResource != nullptr);
+		return pResource->getRTV();
 	};
 	pGetDSVFunc = [](const dx12lib::IDepthStencil *ptr) -> const dx12lib::DepthStencilView &{
-		return dynamic_cast<const dx12lib::IDepthStencil2D *>(ptr)->getDSV();
+		auto *pResource = dynamic_cast<const dx12lib::IDepthStencil2D *>(ptr);
+		assert(pResource != nullptr);
+		return pResource->getDSV();
 	};
 }
 

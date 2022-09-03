@@ -142,6 +142,8 @@ class UAStructuredBuffer;
 class ReadBackBuffer;
 
 class DepthStencil2D;
+class DepthStencil2DArray;
+
 class SamplerTexture2D;
 class SamplerTexture2DArray;
 class SamplerTextureCube;
@@ -180,6 +182,7 @@ interface IUnorderedAccessCube;
 
 interface IDepthStencil;
 interface IDepthStencil2D;
+interface IDepthStencil2DArray;
 
 struct NonCopyable {
 	NonCopyable() = default;

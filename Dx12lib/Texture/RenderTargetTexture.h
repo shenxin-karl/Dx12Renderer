@@ -17,8 +17,7 @@ protected:
 	RenderTarget2D(std::weak_ptr<Device> pDevice,
 		size_t width, 
 		size_t height,
-		const D3D12_CLEAR_VALUE *pClearValue = nullptr,
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
+		const D3D12_CLEAR_VALUE *pClearValue = nullptr
 	);
 private:
 	WRL::ComPtr<ID3D12Resource> _pResource;
@@ -37,8 +36,7 @@ protected:
 		size_t width,
 		size_t height,
 		size_t planeSlice,
-		const D3D12_CLEAR_VALUE *pClearValue = nullptr,
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
+		const D3D12_CLEAR_VALUE *pClearValue = nullptr
 	);
 private:
 	WRL::ComPtr<ID3D12Resource> _pResource;
@@ -56,8 +54,7 @@ protected:
 	RenderTargetCube(std::weak_ptr<Device> pDevice,
 		size_t width,
 		size_t height,
-		D3D12_CLEAR_VALUE *pClearValue = nullptr,
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
+		D3D12_CLEAR_VALUE *pClearValue = nullptr
 	);
 private:
 	WRL::ComPtr<ID3D12Resource> _pResource;
