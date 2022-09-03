@@ -8,64 +8,6 @@ WRL::ComPtr<ID3D12Resource> RenderTarget2D::getD3DResource() const {
 	return _pResource;
 }
 
-const ShaderResourceView & RenderTarget2D::getSRV(size_t mipSlice) const {
-	assert(mipSlice < _pResource->GetDesc().MipLevels);
-	if (_srvMgr.exist(mipSlice))
-		return _srvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = _pResource->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
-	srvDesc.Texture2D.PlaneSlice = 0;
-	srvDesc.Texture2D.ResourceMinLODClamp = static_cast<float>(mipSlice);
-
-	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-		_pResource.Get(),
-		&srvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	D3D12_RESOURCE_STATES expectResourceState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-	ShaderResourceView SRV(descriptor, this);
-	_srvMgr.set(mipSlice, SRV);
-	return _srvMgr.get(mipSlice);
-}
-
-const RenderTargetView & RenderTarget2D::getRTV(size_t mipSlice) const {
-	if (_rtvMgr.exist(mipSlice))
-		return _rtvMgr.get(mipSlice);
-
-	assert(mipSlice < _pResource->GetDesc().MipLevels);
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	rtvDesc.Format = _pResource->GetDesc().Format;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-	rtvDesc.Texture2D.PlaneSlice = 0;
-	rtvDesc.Texture2D.MipSlice = static_cast<UINT>(mipSlice);
-
-	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
-		_pResource.Get(),
-		&rtvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	RenderTargetView RTV(descriptor, this);
-	_rtvMgr.set(mipSlice, RTV);
-	return _rtvMgr.get(mipSlice);
-}
-
-D3D12_CLEAR_VALUE RenderTarget2D::getClearValue() const {
-	return _clearValue;
-}
-
 RenderTarget2D::~RenderTarget2D() {
 	if (auto pSharedDevice = _pDevice.lock()) {
 		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
@@ -77,41 +19,33 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device>
                                pDevice, WRL::ComPtr<ID3D12Resource> pResource,
                                D3D12_RESOURCE_STATES state, 
                                const D3D12_CLEAR_VALUE *pClearValue)
-: _pDevice(pDevice), _pResource(pResource)
+: _pResource(pResource)
 {
-	if (pClearValue != nullptr) {
+	setDevice(pDevice);
+	if (pClearValue != nullptr)
 		_clearValue = *pClearValue;
-	} else {
+	else
 		_clearValue.Format = pResource->GetDesc().Format;
-		_clearValue.Color[0] = 0.f;
-		_clearValue.Color[1] = 0.f;
-		_clearValue.Color[2] = 0.f;
-		_clearValue.Color[3] = 1.f;
-	}
+
 	auto pSharedDevice = pDevice.lock();
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size_t height,
 	const D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
-: _pDevice(pDevice)
 {
-
+	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	if (format == DXGI_FORMAT_UNKNOWN)
 		format = pSharedDevice->getDesc().backBufferFormat;
 
-	if (pClearValue == nullptr) {
+	if (pClearValue == nullptr)
 		_clearValue.Format = format;
-		_clearValue.Color[0] = 0.f;
-		_clearValue.Color[1] = 0.f;
-		_clearValue.Color[2] = 0.f;
-		_clearValue.Color[3] = 1.f;
-	} else {
+	else
 		_clearValue = *pClearValue;	
-	}
-	pClearValue = &_clearValue;
 
+
+	pClearValue = &_clearValue;
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;
@@ -135,93 +69,10 @@ RenderTarget2D::RenderTarget2D(std::weak_ptr<Device> pDevice, size_t width, size
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_COMMON);
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 WRL::ComPtr<ID3D12Resource> RenderTarget2DArray::getD3DResource() const {
 	return _pResource;
-}
-
-const ShaderResourceView & RenderTarget2DArray::getSRV(size_t mipSlice) const {
-	if (_srvMgr.exist(mipSlice))
-		return _srvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = _pResource->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = -1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.ArraySize = _pResource->GetDesc().DepthOrArraySize;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = static_cast<float>(mipSlice);
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-		_pResource.Get(),
-		&srvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	ShaderResourceView SRV(descriptor, this);
-	_srvMgr.set(mipSlice, SRV);
-	return _srvMgr.get(mipSlice);
-}
-
-const ShaderResourceView & RenderTarget2DArray::getPlaneSRV(size_t planeSlice, size_t mipSlice) const {
-	assert(planeSlice < getPlaneSlice());
-	ViewManager<ShaderResourceView> &planeSrvMgr = _planeSrvMgr[planeSlice];
-	if (planeSrvMgr.exist(mipSlice))
-		return planeSrvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = _pResource->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = -1;
-	srvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = static_cast<float>(mipSlice);
-	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-		_pResource.Get(),
-		&srvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	ShaderResourceView SRV(descriptor, this);
-	planeSrvMgr.set(mipSlice, SRV);
-	return _srvMgr.get(mipSlice);
-}
-
-const RenderTargetView & RenderTarget2DArray::getPlaneRTV(size_t planeSlice, size_t mipSlice) const {
-	assert(planeSlice < getPlaneSlice());
-	ViewManager<RenderTargetView> &planeRtvMgr = _planeRtvMgr[planeSlice];
-	if (planeRtvMgr.exist(mipSlice))
-		return planeRtvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	rtvDesc.Format = _pResource->GetDesc().Format;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-	rtvDesc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
-	rtvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
-	rtvDesc.Texture2DArray.ArraySize = 1;
-	rtvDesc.Texture2DArray.PlaneSlice = 0;
-	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
-		_pResource.Get(),
-		&rtvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	RenderTargetView RTV(descriptor, this);
-	planeRtvMgr.set(mipSlice, RTV);
-	return planeRtvMgr.get(mipSlice);
 }
 
 RenderTarget2DArray::~RenderTarget2DArray() {
@@ -236,8 +87,9 @@ RenderTarget2DArray::~RenderTarget2DArray() {
 RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice, 
 	WRL::ComPtr<ID3D12Resource> pResource,
 	D3D12_RESOURCE_STATES state)
-: _pDevice(pDevice), _pResource(pResource)
+: _pResource(pResource)
 {
+	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(pResource.Get(), state);
 }
@@ -248,24 +100,20 @@ RenderTarget2DArray::RenderTarget2DArray(std::weak_ptr<Device> pDevice,
 	size_t planeSlice,
 	const D3D12_CLEAR_VALUE *pClearValue, 
 	DXGI_FORMAT format)
-: _pDevice(pDevice)
 {
+	setDevice(pDevice);
 	assert(planeSlice >= 1);
 	auto pSharedDevice = pDevice.lock();
 	if (format == DXGI_FORMAT_UNKNOWN)
 		format = pSharedDevice->getDesc().backBufferFormat;
 
-	if (pClearValue == nullptr) {
+	if (pClearValue == nullptr)
 		_clearValue.Format = format;
-		_clearValue.Color[0] = 0.f;
-		_clearValue.Color[1] = 0.f;
-		_clearValue.Color[2] = 0.f;
-		_clearValue.Color[3] = 1.f;
-	} else {
+	else
 		_clearValue = *pClearValue;
-	}
-	pClearValue = &_clearValue;
 
+
+	pClearValue = &_clearValue;
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;
@@ -294,86 +142,9 @@ WRL::ComPtr<ID3D12Resource> RenderTargetCube::getD3DResource() const {
 	return _pResource;
 }
 
-const ShaderResourceView & RenderTargetCube::getSRV(size_t mipSlice) const {
-	if (_srvMgr.exist(mipSlice))
-		return _srvMgr.get(mipSlice);
-
-	assert(mipSlice < getMipmapLevels());
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = _pResource->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = -1;
-	srvDesc.TextureCube.ResourceMinLODClamp = static_cast<float>(mipSlice);
-	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-		_pResource.Get(),
-		&srvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	ShaderResourceView SRV(descriptor, this);
-	_srvMgr.set(mipSlice, SRV);
-	return _srvMgr.get(mipSlice);
-}
-
-const ShaderResourceView & RenderTargetCube::getFaceSRV(CubeFace face, size_t mipSlice) const {
-	ViewManager<ShaderResourceView> &cubeSrvMgr = _cubeSrvMgr[face];
-	if (cubeSrvMgr.exist(mipSlice))
-		return cubeSrvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = _pResource->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = -1;
-	srvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(face);
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = static_cast<FLOAT>(mipSlice);
-	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-		_pResource.Get(),
-		&srvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	ShaderResourceView SRV(descriptor, this);
-	cubeSrvMgr.set(mipSlice, SRV);
-	return _srvMgr.get(mipSlice);
-}
-
-const RenderTargetView & RenderTargetCube::getFaceRTV(CubeFace face, size_t mipSlice) const {
-	ViewManager<RenderTargetView> &cubeRtvMgr = _cubeRtvMgr[face];
-	if (cubeRtvMgr.exist(mipSlice))
-		return cubeRtvMgr.get(mipSlice);
-
-	auto pSharedDevice = _pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-	rtvDesc.Format = _pResource->GetDesc().Format;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-	rtvDesc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
-	rtvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(face);
-	rtvDesc.Texture2DArray.ArraySize = 1;
-	rtvDesc.Texture2DArray.PlaneSlice = 0;
-	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
-		_pResource.Get(),
-		&rtvDesc,
-		descriptor.getCPUHandle()
-	);
-
-	RenderTargetView RTV(descriptor, this);
-	cubeRtvMgr.set(mipSlice, RTV);
-	return cubeRtvMgr.get(mipSlice);
-}
 
 RenderTargetCube::~RenderTargetCube() {
-	if (auto pSharedDevice = _pDevice.lock()) {
+	if (auto pSharedDevice = getDevice().lock()) {
 		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
 			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
 	}
@@ -382,31 +153,27 @@ RenderTargetCube::~RenderTargetCube() {
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice,
                                    WRL::ComPtr<ID3D12Resource> pResource,
                                    D3D12_RESOURCE_STATES state)
-: _pDevice(pDevice), _pResource(pResource)
+:  _pResource(pResource)
 {
+	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), state);
 }
 
 RenderTargetCube::RenderTargetCube(std::weak_ptr<Device> pDevice, size_t width, size_t height,
 	D3D12_CLEAR_VALUE *pClearValue, DXGI_FORMAT format)
-: _pDevice(pDevice)
 {
+	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	if (format == DXGI_FORMAT_UNKNOWN)
 		format = pSharedDevice->getDesc().backBufferFormat;
 
-	if (pClearValue == nullptr) {
+	if (pClearValue == nullptr)
 		_clearValue.Format = format;
-		_clearValue.Color[0] = 0.f;
-		_clearValue.Color[1] = 0.f;
-		_clearValue.Color[2] = 0.f;
-		_clearValue.Color[3] = 1.f;
-	} else {
+	else
 		_clearValue = *pClearValue;
-	}
+	
 	pClearValue = &_clearValue;
-
 	D3D12_RESOURCE_DESC renderTargetDesc;
 	renderTargetDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	renderTargetDesc.Alignment = 0;

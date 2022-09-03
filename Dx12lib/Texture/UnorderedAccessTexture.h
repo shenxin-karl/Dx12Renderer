@@ -1,15 +1,13 @@
 #pragma once
 #include <Dx12lib/dx12libStd.h>
 #include <Dx12lib/Resource/IResource.h>
-#include <Dx12lib/Descriptor/DescriptorAllocation.h>
+#include <Dx12lib/Resource/IUnorderedAccessResource.h>
 
 namespace dx12lib {
 	
 class UnorderedAccess2D : public IUnorderedAccess2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const UnorderedAccessView & getUAV(size_t mipSlice = 0) const override;
 	~UnorderedAccess2D() override;
 protected:
 	UnorderedAccess2D(std::weak_ptr<Device> pDevice,
@@ -23,18 +21,12 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable ViewManager<UnorderedAccessView> _uavMgr;
 };
 
 class UnorderedAccess2DArray : public IUnorderedAccess2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
-	const UnorderedAccessView & getPlaneUAV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~UnorderedAccess2DArray() override;
 protected:
 	UnorderedAccess2DArray(std::weak_ptr<Device> pDevice,
@@ -49,20 +41,12 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable std::map<size_t, ViewManager<ShaderResourceView>> _planeSrvMgr;
-	mutable std::map<size_t, ViewManager<UnorderedAccessView>> _planeUavMgr;
 };
 
 class UnorderedAccessCube : public IUnorderedAccessCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
-	const UnorderedAccessView & getFaceUAV(CubeFace face, size_t mipSlice = 0) const override;
-	const UnorderedAccessView & get2DArrayUAV(size_t mipSlice = 0) const override;
 	~UnorderedAccessCube() override;
 protected:
 	UnorderedAccessCube(std::weak_ptr<Device> pDevice,
@@ -77,12 +61,7 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable ViewManager<UnorderedAccessView> _2DArrayUavMgr;
-	mutable std::map<CubeFace, ViewManager<ShaderResourceView>> _cubeSrvMgr;
-	mutable std::map<CubeFace, ViewManager<UnorderedAccessView>> _cubeUavMgr;
 };
 
 }

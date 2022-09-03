@@ -9,21 +9,8 @@ WRL::ComPtr<ID3D12Resource> DepthStencil2D::getD3DResource() const {
 	return _pResource;
 }
 
-D3D12_CLEAR_VALUE DepthStencil2D::getClearValue() const {
-	return _clearValue;
-}
-
-const ShaderResourceView & DepthStencil2D::getSRV(size_t mipSlice) const {
-	assert(mipSlice == 0);
-	return _shaderResourceView;
-}
-
-const DepthStencilView & DepthStencil2D::getDSV() const {
-	return _depthStencilView;
-}
-
 DepthStencil2D::~DepthStencil2D() {
-	if (auto pSharedDevice = _pDevice.lock()) {
+	if (auto pSharedDevice = getDevice().lock()) {
 		if (auto *pGlobalResourceState = pSharedDevice->getGlobalResourceState())
 			pGlobalResourceState->removeGlobalResourceState(_pResource.Get());
 	}
@@ -34,21 +21,19 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 	size_t height,
 	const D3D12_CLEAR_VALUE *pClearValue,
 	DXGI_FORMAT depthStencilFormat)
-: _pDevice(pDevice)
 {
+	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	if (depthStencilFormat == DXGI_FORMAT_UNKNOWN)
 		depthStencilFormat = pSharedDevice->getDesc().depthStencilFormat;
 
-	if (pClearValue == nullptr) {
+	if (pClearValue == nullptr)
 		_clearValue.Format = depthStencilFormat;
-		_clearValue.DepthStencil.Depth = 1.f;
-		_clearValue.DepthStencil.Stencil = 0;
-	} else {
+	else
 		_clearValue = *pClearValue;
-	}
-	pClearValue = &_clearValue;
 
+	assert(_clearValue.Format != DXGI_FORMAT_UNKNOWN);
+	pClearValue = &_clearValue;
 	D3D12_RESOURCE_DESC depthStencilDesc;
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthStencilDesc.Alignment = 0;
@@ -69,7 +54,7 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 		pClearValue,
 		IID_PPV_ARGS(&_pResource)
 	));
-	createViews(pDevice);
+
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 }
 
@@ -77,50 +62,17 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 	WRL::ComPtr<ID3D12Resource> pResource, 
 	D3D12_RESOURCE_STATES state, 
 	const D3D12_CLEAR_VALUE *pClearValue)
-: _pDevice(pDevice)
 {
-	if (pClearValue != nullptr) {
+	setDevice(pDevice);
+	if (pClearValue != nullptr)
 		_clearValue = *pClearValue;
-	} else {
+	else
 		_clearValue.Format = pResource->GetDesc().Format;
-		_clearValue.DepthStencil.Depth = 1.f;
-		_clearValue.DepthStencil.Stencil = 0;
-	}
 
+	assert(_clearValue.Format != DXGI_FORMAT_UNKNOWN);
 	_pResource = pResource;
-	createViews(pDevice);
 	auto pSharedDevice = pDevice.lock();
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(pResource.Get(), state);
-}
-
-void DepthStencil2D::createViews(std::weak_ptr<Device> pDevice) {
-	auto pSharedDevice = pDevice.lock();
-	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	_depthStencilView = DepthStencilView(descriptor, this);
-	pSharedDevice->getD3DDevice()->CreateDepthStencilView(
-		_pResource.Get(),
-		nullptr,
-		_depthStencilView
-	);
-
-	auto desc = _pResource->GetDesc();
-	D3D12_FEATURE_DATA_FORMAT_SUPPORT formatSupport;
-	formatSupport.Format = desc.Format;
-	ThrowIfFailed(pSharedDevice->getD3DDevice()->CheckFeatureSupport(
-		D3D12_FEATURE_FORMAT_SUPPORT,
-		&formatSupport,
-		sizeof(D3D12_FEATURE_DATA_FORMAT_SUPPORT)
-	));
-
-	if (formatSupport.Support1 & D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE) {
-		auto SRVDescriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		_shaderResourceView = ShaderResourceView(SRVDescriptor, this);
-		pSharedDevice->getD3DDevice()->CreateShaderResourceView(
-			_pResource.Get(),
-			nullptr,
-			_shaderResourceView
-		);
-	}
 }
 
 }

@@ -14,7 +14,7 @@ public:
 
 	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
 		assert(pDepthStencil == nullptr);
-		pDirectCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
+		pDirectCtx->clearColor(getRTV(), pRenderTarget->getClearValue().Color);
 	}
 };
 
@@ -28,7 +28,7 @@ public:
 		assert(pRenderTarget == nullptr);
 		auto clearValue = pDepthStencil->getClearValue();
 		pDirectCtx->clearDepthStencil(
-			pDepthStencil,
+			getDSV(),
 			clearValue.DepthStencil.Depth,
 			clearValue.DepthStencil.Stencil
 		);
@@ -44,9 +44,9 @@ public:
 
 	void execute(dx12lib::DirectContextProxy pDirectCtx) override {
 		auto clearValue = pDepthStencil->getClearValue();
-		pDirectCtx->clearColor(pRenderTarget, pRenderTarget->getClearValue().Color);
+		pDirectCtx->clearColor(getRTV(), pRenderTarget->getClearValue().Color);
 		pDirectCtx->clearDepthStencil(
-			pDepthStencil,
+			getDSV(),
 			clearValue.DepthStencil.Depth,
 			clearValue.DepthStencil.Stencil
 		);

@@ -3,7 +3,7 @@
 namespace rgph {
 
 std::shared_ptr<SamplerTextureBindable> SamplerTextureBindable::make(dx12lib::ShaderRegister shaderRegister,
-	std::shared_ptr<dx12lib::IShaderResource> pShaderResource, 
+	std::shared_ptr<dx12lib::ITextureResource> pShaderResource, 
 	size_t mipMap,
 	const std::source_location &sourceLocation)
 {

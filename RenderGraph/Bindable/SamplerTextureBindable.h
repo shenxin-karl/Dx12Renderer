@@ -9,7 +9,7 @@ namespace rgph {
 class SamplerTextureBindable : public Bindable {
 public:
 	static std::shared_ptr<SamplerTextureBindable> make(dx12lib::ShaderRegister shaderRegister, 
-		std::shared_ptr<dx12lib::IShaderResource> pShaderResource, 
+		std::shared_ptr<dx12lib::ITextureResource> pShaderResource, 
 		size_t mipMap = 0,
 		DECLARE_SOURCE_LOCATION_ARG
 	);
@@ -18,7 +18,7 @@ public:
 private:
 	size_t _mipMap;
 	dx12lib::ShaderRegister _shaderRegister;
-	std::shared_ptr<dx12lib::IShaderResource> _pShaderResource;
+	std::shared_ptr<dx12lib::ITextureResource> _pShaderResource;
 };
 
 }

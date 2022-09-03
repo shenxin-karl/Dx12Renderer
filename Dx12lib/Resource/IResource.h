@@ -7,84 +7,23 @@
 namespace dx12lib {
 
 interface IResource : NonCopyable {
+	IResource() = default;
 	~IResource() override = default;
 	void setResourceName(const std::string &name);
 	void setResourceName(const std::wstring &name);
+	void setDevice(std::weak_ptr<Device> pDevice);
+	size_t getWidth() const;
+	size_t getHeight() const;
+	DXGI_FORMAT getFormat() const;
+	std::weak_ptr<Device> getDevice() const;
 	virtual WRL::ComPtr<ID3D12Resource> getD3DResource() const = 0;
-	virtual bool checkRTVState(D3D12_RESOURCE_STATES state) const { return false; }
-	virtual bool checkDSVState(D3D12_RESOURCE_STATES state) const { return false; }
-	virtual bool checkSRVState(D3D12_RESOURCE_STATES state) const { return false; }
-	virtual bool checkUAVState(D3D12_RESOURCE_STATES state) const { return false; }
-	virtual bool checkCBVState(D3D12_RESOURCE_STATES state) const { return false; }
-};
-
-interface IShaderResource : virtual IResource {
-	bool checkSRVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual ShaderResourceDimension getDimension() const = 0;
-	virtual const ShaderResourceView &getSRV(size_t mipSlice = 0) const = 0;
-	virtual size_t getWidth() const;
-	virtual size_t getHeight() const;
-	virtual size_t getMipmapLevels() const;
-	virtual DXGI_FORMAT getFormat() const;
-};
-
-/////////////////////////////////////////////ShaderResource/////////////////////////////////////////////
-interface IShaderResource2D : IShaderResource {
-	ShaderResourceDimension getDimension() const override;
-};
-
-interface IShaderResource2DArray : IShaderResource {
-	ShaderResourceDimension getDimension() const override;
-	virtual size_t getPlaneSlice() const;
-	virtual const ShaderResourceView &getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const = 0;
-};
-
-interface IShaderResourceCube : IShaderResource {
-	ShaderResourceDimension getDimension() const override;
-	virtual const ShaderResourceView &getFaceSRV(CubeFace face, size_t mipSlice = 0) const = 0;
-};
-/////////////////////////////////////////////RenderTarget/////////////////////////////////////////////
-interface IRenderTarget2D : IShaderResource2D {
-	bool checkRTVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual D3D12_CLEAR_VALUE getClearValue() const = 0;
-	virtual const RenderTargetView &getRTV(size_t mipSlice = 0) const = 0;
-};
-
-interface IRenderTarget2DArray : IShaderResource2DArray {
-	bool checkRTVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual D3D12_CLEAR_VALUE getClearValue() const = 0;
-	virtual const RenderTargetView &getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const = 0;
-};
-
-interface IRenderTargetCube : IShaderResourceCube {
-	bool checkRTVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual D3D12_CLEAR_VALUE getClearValue() const = 0;
-	virtual const RenderTargetView &getFaceRTV(CubeFace face, size_t mipSlice = 0) const = 0;
-};
-/////////////////////////////////////////////UnorderedAccess/////////////////////////////////////////////
-
-interface IUnorderedAccess2D : IShaderResource2D {
-	bool checkUAVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual const UnorderedAccessView &getUAV(size_t mipSlice = 0) const = 0;
-};
-
-interface IUnorderedAccess2DArray : IShaderResource2DArray {
-	bool checkUAVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual const UnorderedAccessView &getPlaneUAV(size_t planeSlice, size_t mipSlice = 0) const = 0;
-};
-
-interface IUnorderedAccessCube : IShaderResourceCube {
-	bool checkUAVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual const UnorderedAccessView &getFaceUAV(CubeFace face, size_t mipSlice = 0) const = 0;
-	virtual const UnorderedAccessView &get2DArrayUAV(size_t mipSlice = 0) const = 0;
-};
-/////////////////////////////////////////////IDepthStencil2D/////////////////////////////////////////////
-
-interface IDepthStencil2D : IShaderResource2D {
-	bool checkDSVState(D3D12_RESOURCE_STATES currentState) const override;
-	bool checkSRVState(D3D12_RESOURCE_STATES currentState) const override;
-	virtual D3D12_CLEAR_VALUE getClearValue() const = 0;
-	virtual const DepthStencilView &getDSV() const = 0;
+	virtual bool checkRTVState(D3D12_RESOURCE_STATES state) const;
+	virtual bool checkDSVState(D3D12_RESOURCE_STATES state) const;
+	virtual bool checkCBVState(D3D12_RESOURCE_STATES state) const;
+	virtual bool checkSRVState(D3D12_RESOURCE_STATES state) const;
+	virtual bool checkUAVState(D3D12_RESOURCE_STATES state) const;
+protected:
+	std::weak_ptr<Device> _pDevice;
 };
 
 /////////////////////////////////////////////IBufferResource/////////////////////////////////////////////
@@ -101,7 +40,6 @@ interface IConstantBuffer : IBufferResource {
 	virtual const BYTE *getMappedPtr() const = 0;
 	virtual void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) = 0;
 	virtual const ConstantBufferView &getCBV() const = 0;
-	bool checkCBVState(D3D12_RESOURCE_STATES currentState) const override;
 };
 /////////////////////////////////////////////IVertexBuffer/////////////////////////////////////////////
 interface IVertexBuffer : IBufferResource {
@@ -121,7 +59,6 @@ interface IIndexBuffer : IBufferResource {
 //////////////////////////////////////////ISRStructuredBuffer//////////////////////////////////////////
 interface ISRStructuredBuffer : IBufferResource {
 	BufferType getBufferType() const override;
-	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
 	virtual size_t getElementCount() const = 0;
 	virtual size_t getElementStride() const = 0;
 	virtual void updateBuffer(const void *pData, size_t sizeInByte, size_t offset = 0) = 0;
@@ -130,8 +67,6 @@ interface ISRStructuredBuffer : IBufferResource {
 //////////////////////////////////////////IUAStructuredBuffer//////////////////////////////////////////
 interface IUAStructuredBuffer : IBufferResource {
 	BufferType getBufferType() const override;
-	bool checkUAVState(D3D12_RESOURCE_STATES state) const override;
-	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
 	virtual size_t getElementCount() const = 0;
 	virtual size_t getElementStride() const = 0;
 	virtual const UnorderedAccessView &getUAV() const = 0;
@@ -146,14 +81,5 @@ interface IReadBackBuffer : IBufferResource {
 	virtual size_t getElementStride() const = 0;
 	virtual void setCompletedCallback(const std::function<void(IReadBackBuffer *)> &callback) = 0;
 };
-
-template<typename T, typename U> requires(std::is_base_of_v<IResource, U>)
-std::shared_ptr<T> DynamicResourceCast(const std::shared_ptr<U> &pOther) {
-	if constexpr (std::is_base_of_v<T, U >)
-		return std::static_pointer_cast<T>(pOther);
-	if constexpr (requires{ pOther->operator std::shared_ptr<T>(); })
-		return pOther->operator std::shared_ptr<T>();
-	return nullptr;
-}
 
 }

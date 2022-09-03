@@ -8,6 +8,12 @@ GraphicsPass::GraphicsPass(const std::string &passName, bool rtActive, bool dsAc
 , pRenderTarget(this, "RenderTarget", rtActive)
 , pDepthStencil(this, "DepthStencil", dsActive)
 {
+	pGetRTVFunc = [](const dx12lib::IRenderTarget *ptr) -> const dx12lib::RenderTargetView & {
+		return dynamic_cast<const dx12lib::IRenderTarget2D *>(ptr)->getRTV(0);
+	};
+	pGetDSVFunc = [](const dx12lib::IDepthStencil *ptr) -> const dx12lib::DepthStencilView &{
+		return dynamic_cast<const dx12lib::IDepthStencil2D *>(ptr)->getDSV();
+	};
 }
 
 void GraphicsPass::preExecute(dx12lib::DirectContextProxy pDirectCtx) {
@@ -45,8 +51,7 @@ void GraphicsPass::bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx) {
 
 	if (customScissorRect.has_value()) {
 		graphicsCtx.setScissorRect(*customScissorRect);
-	}
-	else {
+	} else {
 		graphicsCtx.setScissorRect(D3D12_RECT{
 			.left = 0,
 			.top = 0,
@@ -57,12 +62,12 @@ void GraphicsPass::bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx) {
 
 	if (pRenderTarget != nullptr) {
 		graphicsCtx.setRenderTarget(
-			pRenderTarget->getRTV(renderTargetMipmap),
-			pDepthStencil->getDSV()
+			pGetRTVFunc(pRenderTarget.get()),
+			pGetDSVFunc(pDepthStencil.get())
 		);
 	}
 	else {
-		graphicsCtx.setRenderTarget(pDepthStencil->getDSV());
+		graphicsCtx.setRenderTarget(pGetDSVFunc(pDepthStencil.get()));
 	}
 }
 
@@ -72,6 +77,14 @@ DXGI_FORMAT GraphicsPass::getRtFormat() const {
 
 DXGI_FORMAT GraphicsPass::getDsFormat() const {
 	return pDepthStencil->getFormat();
+}
+
+const dx12lib::RenderTargetView & GraphicsPass::getRTV() const {
+	return pGetRTVFunc(pRenderTarget.get());
+}
+
+const dx12lib::DepthStencilView & GraphicsPass::getDSV() const {
+	return pGetDSVFunc(pDepthStencil.get());
 }
 
 }

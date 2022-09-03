@@ -1,7 +1,6 @@
 #pragma once
 #include <Dx12lib/dx12libStd.h>
 #include <Dx12lib/Context/ContextProxy.hpp>
-#include <Dx12lib/Tool/ThreakSafeQueue.hpp>
 #include <array>
 
 namespace dx12lib {

@@ -154,12 +154,19 @@ class UnorderedAccess2D;
 class UnorderedAccess2DArray;
 class UnorderedAccessCube;
 
-
 interface IResource;
-interface IShaderResource;
-interface IShaderResource2D;
-interface IShaderResource2DArray;
-interface IShaderResourceCube;
+interface IBufferResource;
+interface IConstantBuffer;
+interface IVertexBuffer;
+interface IIndexBuffer;
+interface ISRStructuredBuffer;
+interface IUAStructuredBuffer;
+interface IReadBackBuffer;
+
+interface ITextureResource;
+interface ITextureResource2D;
+interface ITextureResource2DArray;
+interface ITextureResourceCube;
 
 interface IRenderTarget;
 interface IRenderTarget2D;
@@ -173,15 +180,6 @@ interface IUnorderedAccessCube;
 
 interface IDepthStencil;
 interface IDepthStencil2D;
-
-interface IBufferResource;
-interface IConstantBuffer;
-interface IVertexBuffer;
-interface IIndexBuffer;
-interface IReadBackBuffer;
-
-interface ISRStructuredBuffer;
-
 
 struct NonCopyable {
 	NonCopyable() = default;
@@ -212,6 +210,9 @@ using FRRawStructuredBufferPtr = std::shared_ptr<FRSRStructuredBuffer<RawData>>;
 
 template<typename T>
 using FRStructuredBufferPtr = std::shared_ptr<FRSRStructuredBuffer<T>>;
+
+std::wstring to_wstring(const std::string &str);
+std::string to_string(const std::wstring &str);
 
 }
 

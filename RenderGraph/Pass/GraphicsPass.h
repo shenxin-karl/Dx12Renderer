@@ -13,12 +13,18 @@ public:
 	void bindRenderTarget(dx12lib::IGraphicsContext &graphicsCtx);
 	DXGI_FORMAT getRtFormat() const;
 	DXGI_FORMAT getDsFormat() const;
+	const dx12lib::RenderTargetView &getRTV() const;
+	const dx12lib::DepthStencilView &getDSV() const;
 public:
-	size_t renderTargetMipmap = 0;
+	using GetRTVFuncType = std::function<const dx12lib::RenderTargetView &(const dx12lib::IRenderTarget *)>;
+	using GetDSVFuncType = std::function<const dx12lib::DepthStencilView &(const dx12lib::IDepthStencil *)>;
+
 	std::optional<D3D12_RECT> customScissorRect;
 	std::optional<D3D12_VIEWPORT> customViewport;
-	PassResourcePtr<dx12lib::RenderTarget2D> pRenderTarget;
-	PassResourcePtr<dx12lib::DepthStencil2D> pDepthStencil;
+	GetRTVFuncType pGetRTVFunc;
+	GetDSVFuncType pGetDSVFunc;
+	PassResourcePtr<dx12lib::IRenderTarget> pRenderTarget;
+	PassResourcePtr<dx12lib::IDepthStencil> pDepthStencil;
 };
 
 }

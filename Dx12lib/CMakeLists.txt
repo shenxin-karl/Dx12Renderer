@@ -5,6 +5,10 @@ file(GLOB_RECURSE HEADER_FILES *.h *.hpp *.ini)
 file(GLOB_RECURSE SOURCE_FILES *.c *.cpp)
 SET(AllFile ${HEADER_FILES} ${SOURCE_FILES})
 
+if (MSVC)
+	add_definitions(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)	## enable wstring_convert
+endif(MSVC)
+
 foreach(fileItem ${AllFile})       
 	# Get the directory of the source file
 	get_filename_component(PARENT_DIR "${fileItem}" DIRECTORY)

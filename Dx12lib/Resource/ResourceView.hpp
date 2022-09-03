@@ -35,6 +35,9 @@ public:
 	const IResource *getResource() const {
 		return _pResource;
 	}
+	bool valid() const {
+		return _descriptor.isValid();
+	}
 private:
 	size_t _offset = 0;
 	DescriptorAllocation _descriptor;

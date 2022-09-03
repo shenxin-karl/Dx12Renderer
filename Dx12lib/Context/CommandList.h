@@ -25,8 +25,8 @@ public:
 	std::shared_ptr<SamplerTexture2DArray> createDDSTexture2DArrayFromMemory(const void *pData, size_t sizeInByte) override;
 	std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromFile(const std::wstring &fileName) override;
 	std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromMemory(const void *pData, size_t sizeInByte) override;
-	std::shared_ptr<IShaderResource> createTextureFromFile(const std::wstring &fileName, bool sRGB) override;
-	std::shared_ptr<IShaderResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB) override;
+	std::shared_ptr<ITextureResource> createTextureFromFile(const std::wstring &fileName, bool sRGB) override;
+	std::shared_ptr<ITextureResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB) override;
 
 	void setDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, WRL::ComPtr<ID3D12DescriptorHeap> pHeap) override;
 	void setConstantBufferView(const ShaderRegister &sr, const ConstantBufferView &cbv) override;
@@ -57,11 +57,11 @@ public:
 	void drawInstanced(size_t vertCount, size_t instanceCount, size_t baseVertexLocation, size_t startInstanceLocation) override;
 	void drawIndexedInstanced(size_t indexCountPerInstance, size_t instanceCount, size_t startIndexLocation, size_t baseVertexLocation, size_t startInstanceLocation) override;
 
-	void clearColor(std::shared_ptr<RenderTarget2D> pResource, float4 color) override;
-	void clearColor(std::shared_ptr<RenderTarget2D> pResource, float colors[4]) override;
-	void clearDepth(std::shared_ptr<DepthStencil2D> pResource, float depth) override;
-	void clearStencil(std::shared_ptr<DepthStencil2D> pResource, UINT stencil) override;
-	void clearDepthStencil(std::shared_ptr<DepthStencil2D> pResource, float depth, UINT stencil) override;
+	void clearColor(const RenderTargetView &rtv, float4 color) override;
+	void clearColor(const RenderTargetView &rtv, float colors[4]) override;
+	void clearDepth(const DepthStencilView &dsv, float depth) override;
+	void clearStencil(const DepthStencilView &dsv, UINT stencil) override;
+	void clearDepthStencil(const DepthStencilView &dsv, float depth, UINT stencil) override;
 /// ComputeContext api 
 	void setComputePSO(std::shared_ptr<ComputePSO> pPipelineStateObject) override;
 	void setUnorderedAccessView(const ShaderRegister &sr, const UnorderedAccessView &uav) override;
@@ -73,6 +73,7 @@ private:
 	friend class FrameResourceItem;
 	using ReadBackBufferPool = std::vector<std::shared_ptr<ReadBackBuffer>>;
 	using StaleResourcePool = std::vector<std::shared_ptr<IResource>>;
+	using StaleRawResourcePool = std::vector<WRL::ComPtr<ID3D12Resource>>;
 	using StaleD3DResourcePool = std::vector<WRL::ComPtr<ID3D12Resource>>;
 	void setGraphicsRootSignature(std::shared_ptr<RootSignature> pRootSignature);
 	void setComputeRootSignature(std::shared_ptr<RootSignature> pRootSignature);
@@ -89,7 +90,8 @@ private:
 		size_t numSubResource, 
 		D3D12_SUBRESOURCE_DATA *pSubResourceData
 	);
-	std::shared_ptr<IShaderResource> createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage);
+	std::shared_ptr<ITextureResource> createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage);
+	void trackResource(WRL::ComPtr<ID3D12Resource> &&pResource);
 private:
 	bool								   _shouldReset = false;
 	D3D12_COMMAND_LIST_TYPE                _cmdListType;
@@ -100,6 +102,7 @@ private:
 	std::unique_ptr<DynamicDescriptorHeap> _pDynamicDescriptorHeaps[kDynamicDescriptorHeapCount];
 	ReadBackBufferPool                     _readBackBuffers;
 	StaleResourcePool					   _staleResourceBuffers;
+	StaleRawResourcePool				   _staleRawResourceBuffers;
 private:
 	struct CommandListState {
 		PSO           *pPSO;

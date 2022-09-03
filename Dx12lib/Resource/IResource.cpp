@@ -7,8 +7,7 @@
 namespace dx12lib {
 
 void IResource::setResourceName(const std::string &name) {
-	static std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> converter;
-	setResourceName(converter.from_bytes(name));
+	setResourceName(to_wstring(name));
 }
 
 void IResource::setResourceName(const std::wstring &name) {
@@ -17,83 +16,50 @@ void IResource::setResourceName(const std::wstring &name) {
 	pResource->SetName(name.c_str());
 }
 
-bool IShaderResource::checkSRVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ||
-		   currentState & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+void IResource::setDevice(std::weak_ptr<Device> pDevice) {
+	_pDevice = std::move(pDevice);
 }
 
-size_t IShaderResource::getWidth() const {
-	return static_cast<size_t>(getD3DResource()->GetDesc().Width);
+size_t IResource::getWidth() const {
+	return getD3DResource()->GetDesc().Width;
 }
 
-size_t IShaderResource::getHeight() const {
-	return static_cast<size_t>(getD3DResource()->GetDesc().Height);
+size_t IResource::getHeight() const {
+	return getD3DResource()->GetDesc().Height;
 }
 
-size_t IShaderResource::getMipmapLevels() const {
-	return static_cast<size_t>(getD3DResource()->GetDesc().MipLevels);
-}
-
-DXGI_FORMAT IShaderResource::getFormat() const {
+DXGI_FORMAT IResource::getFormat() const {
 	return getD3DResource()->GetDesc().Format;
 }
 
-ShaderResourceDimension IShaderResource2D::getDimension() const {
-	return ShaderResourceDimension::Texture2D;
+std::weak_ptr<Device> IResource::getDevice() const {
+	return _pDevice;
 }
 
-ShaderResourceDimension IShaderResource2DArray::getDimension() const {
-	return ShaderResourceDimension::Texture2DArray;
+bool IResource::checkRTVState(D3D12_RESOURCE_STATES state) const {
+	return state & D3D12_RESOURCE_STATE_RENDER_TARGET;
 }
 
-size_t IShaderResource2DArray::getPlaneSlice() const {
-	return getD3DResource()->GetDesc().DepthOrArraySize;
+bool IResource::checkDSVState(D3D12_RESOURCE_STATES state) const {
+	return state & D3D12_RESOURCE_STATE_DEPTH_WRITE;
 }
 
-ShaderResourceDimension IShaderResourceCube::getDimension() const {
-	return ShaderResourceDimension::TextureCube;
+bool IResource::checkCBVState(D3D12_RESOURCE_STATES state) const {
+	return state & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 }
 
-bool IRenderTarget2D::checkRTVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_RENDER_TARGET;
+bool IResource::checkSRVState(D3D12_RESOURCE_STATES state) const {
+	return state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ||
+		   state & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 }
 
-bool IRenderTarget2DArray::checkRTVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_RENDER_TARGET;
-}
-
-bool IRenderTargetCube::checkRTVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_RENDER_TARGET;
-}
-
-bool IUnorderedAccess2D::checkUAVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-}
-
-bool IUnorderedAccess2DArray::checkUAVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-}
-
-bool IUnorderedAccessCube::checkUAVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-}
-
-bool IDepthStencil2D::checkDSVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_DEPTH_WRITE;
-}
-
-bool IDepthStencil2D::checkSRVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_DEPTH_READ;
+bool IResource::checkUAVState(D3D12_RESOURCE_STATES state) const {
+	return state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }
 
 BufferType IConstantBuffer::getBufferType() const {
 	return BufferType::ConstantBuffer;
 }
-
-bool IConstantBuffer::checkCBVState(D3D12_RESOURCE_STATES currentState) const {
-	return currentState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-}
-
 
 BufferType IVertexBuffer::getBufferType() const {
 	return BufferType::IndexBuffer;
@@ -107,22 +73,8 @@ BufferType ISRStructuredBuffer::getBufferType() const {
 	return BufferType::StructuredBuffer;
 }
 
-bool ISRStructuredBuffer::checkSRVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ||
-		   state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-}
-
 BufferType IUAStructuredBuffer::getBufferType() const {
 	return BufferType::StructuredBuffer;
-}
-
-bool IUAStructuredBuffer::checkUAVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;	
-}
-
-bool IUAStructuredBuffer::checkSRVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ||
-		   state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 }
 
 BufferType IReadBackBuffer::getBufferType() const {

@@ -89,7 +89,8 @@ FRSRStructuredBuffer<T>::FRSRStructuredBuffer(std::weak_ptr<Device> pDevice, con
 			&desc,
 			descriptor.getCPUHandle(i)
 		);
-		_srvs[i] = ShaderResourceView(desc, this, i);
+
+		_srvs[i] = ShaderResourceView(descriptor, this, i);
 	}
 }
 

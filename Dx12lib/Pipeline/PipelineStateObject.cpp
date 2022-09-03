@@ -206,6 +206,7 @@ void GraphicsPSO::finalize() {
 		&_psoDesc,
 		IID_PPV_ARGS(&_pPSO)
 	));
+	_pPSO->SetName(to_wstring(getName()).c_str());
 	_dirty = false;
 }
 
@@ -276,6 +277,7 @@ void ComputePSO::finalize() {
 	auto pDevice = _pDevice.lock()->getD3DDevice();
 	_psoDesc.pRootSignature = _pRootSignature->getRootSignature().Get();
 	ThrowIfFailed(pDevice->CreateComputePipelineState(&_psoDesc, IID_PPV_ARGS(&_pPSO)));
+	_pPSO->SetName(to_wstring(getName()).c_str());
 	_dirty = false;
 }
 

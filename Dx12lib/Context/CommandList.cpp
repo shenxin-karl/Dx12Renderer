@@ -101,11 +101,12 @@ std::shared_ptr<SamplerTexture2D> CommandList::createDDSTexture2DFromFile(const 
 		pTexture,
 		pUploadHeap
 	);
+
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+	trackResource(std::move(pUploadHeap));
 	return std::make_shared<dx12libTool::MakeSamplerTexture2D>(_pDevice,
 		pTexture,
-		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 }
@@ -121,11 +122,12 @@ std::shared_ptr<SamplerTexture2D> CommandList::createDDSTexture2DFromMemory(cons
 		pTexture,
 		pUploadHeap
 	);
+
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+	trackResource(std::move(pUploadHeap));
 	return std::make_shared<dx12libTool::MakeSamplerTexture2D>(_pDevice,
 		pTexture,
-		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 }
@@ -139,12 +141,13 @@ std::shared_ptr<SamplerTexture2DArray> CommandList::createDDSTexture2DArrayFromF
 		pTexture,
 		pUploadHeap
 	);
+
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize >= 1);
+	trackResource(std::move(pUploadHeap));
 	auto pTex = std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
 		_pDevice,
 		pTexture,
-		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 	pTex->getD3DResource()->SetName(fileName.c_str());
@@ -164,10 +167,10 @@ std::shared_ptr<SamplerTexture2DArray> CommandList::createDDSTexture2DArrayFromM
 
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize >= 1);
+	trackResource(std::move(pUploadHeap));
 	return std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
 		_pDevice,
 		pTexture,
-		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 }
@@ -181,12 +184,13 @@ std::shared_ptr<SamplerTextureCube> CommandList::createDDSTextureCubeFromFile(co
 		pTexture,
 		pUploadHeap
 	);
+
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize == 6);
+	trackResource(std::move(pUploadHeap));
 	auto pTex = std::make_shared<dx12libTool::MakeSamplerTextureCube>(
 		_pDevice, 
 		pTexture, 
-		pUploadHeap, 
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 	pTex->getD3DResource()->SetName(fileName.c_str());
@@ -208,15 +212,15 @@ std::shared_ptr<SamplerTextureCube> CommandList::createDDSTextureCubeFromMemory(
 
 	assert(pTexture != nullptr && pUploadHeap != nullptr);
 	assert(pTexture->GetDesc().DepthOrArraySize == 6);
+	trackResource(std::move(pUploadHeap));
 	return std::make_shared<dx12libTool::MakeSamplerTextureCube>(
 		_pDevice,
 		pTexture,
-		pUploadHeap,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	);
 }
 
-std::shared_ptr<IShaderResource> CommandList::createTextureFromFile(const std::wstring &fileName, bool sRGB) {
+std::shared_ptr<ITextureResource> CommandList::createTextureFromFile(const std::wstring &fileName, bool sRGB) {
 	auto pos = fileName.find_last_of(L".");
 	if (pos == std::wstring::npos) {
 		assert(false);
@@ -243,7 +247,7 @@ std::shared_ptr<IShaderResource> CommandList::createTextureFromFile(const std::w
 	return pTex;
 }
 
-std::shared_ptr<IShaderResource> CommandList::createTextureFromMemory(const std::string &extension, 
+std::shared_ptr<ITextureResource> CommandList::createTextureFromMemory(const std::string &extension,
 	const void *pData, 
 	size_t sizeInByte,
 	bool sRGB) 
@@ -492,49 +496,49 @@ void CommandList::drawIndexedInstanced(size_t indexCountPerInstance,
 	);
 }
 
-void CommandList::clearColor(std::shared_ptr<RenderTarget2D> pResource, float4 color) {
+void CommandList::clearColor(const RenderTargetView &rtv, float4 color) {
 	_pCommandList->ClearRenderTargetView(
-		pResource->getRTV(),
+		rtv,
 		reinterpret_cast<FLOAT *>(&color),
 		0,
 		nullptr
 	);
 }
 
-void CommandList::clearColor(std::shared_ptr<RenderTarget2D> pResource, float colors[4]) {
+void CommandList::clearColor(const RenderTargetView &rtv, float colors[4]) {
 	_pCommandList->ClearRenderTargetView(
-		pResource->getRTV(),
+		rtv,
 		colors,
 		0,
 		nullptr
 	);
 }
 
-void CommandList::clearDepth(std::shared_ptr<DepthStencil2D> pResource, float depth) {
+void CommandList::clearDepth(const DepthStencilView &dsv, float depth) {
 	_pCommandList->ClearDepthStencilView(
-		pResource->getDSV(),
+		dsv,
 		D3D12_CLEAR_FLAG_DEPTH,
 		depth,
-		0,
+		1,
 		0,
 		nullptr
 	);
 }
 
-void CommandList::clearStencil(std::shared_ptr<DepthStencil2D> pResource, UINT stencil) {
+void CommandList::clearStencil(const DepthStencilView &dsv, UINT stencil) {
 	_pCommandList->ClearDepthStencilView(
-		pResource->getDSV(),
+		dsv,
 		D3D12_CLEAR_FLAG_STENCIL,
-		0.f,
+		1.f,
 		stencil,
 		0,
 		nullptr
 	);
 }
 
-void CommandList::clearDepthStencil(std::shared_ptr<DepthStencil2D> pResource, float depth, UINT stencil) {
+void CommandList::clearDepthStencil(const DepthStencilView &dsv, float depth, UINT stencil) {
 	_pCommandList->ClearDepthStencilView(
-		pResource->getDSV(),
+		dsv,
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
 		depth,
 		stencil,
@@ -629,6 +633,7 @@ void CommandList::reset() {
 		pReadBackBuffer->setCompleted(true);
 	_readBackBuffers.clear();
 	_staleResourceBuffers.clear();
+	_staleRawResourceBuffers.clear();
 }
 
 void CommandList::setRootSignature(std::shared_ptr<RootSignature> pRootSignature, 
@@ -710,7 +715,7 @@ WRL::ComPtr<ID3D12Resource> CommandList::copyTextureSubResource(WRL::ComPtr<ID3D
 	return pSrcResource;
 }
 
-std::shared_ptr<IShaderResource> CommandList::createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage) {
+std::shared_ptr<ITextureResource> CommandList::createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage) {
 	D3D12_RESOURCE_DESC textureDesc{};
 	switch (metadata.dimension) {
 	case DX::TEX_DIMENSION_TEXTURE2D:
@@ -760,27 +765,26 @@ std::shared_ptr<IShaderResource> CommandList::createTextureImpl(const DX::TexMet
 		subResources.data()
 	);
 
+	trackResource(std::move(pUploader));
+
 	switch (metadata.dimension) {
 	case DirectX::TEX_DIMENSION_TEXTURE2D:
 		if (metadata.arraySize == 1) {
 			return std::make_shared<dx12libTool::MakeSamplerTexture2D>(
 				_pDevice,
 				pTextureResource,
-				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
 			);
 		} else if (metadata.arraySize == 6) {
 			return std::make_shared<dx12libTool::MakeSamplerTextureCube>(
 				_pDevice,
 				pTextureResource,
-				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
 			);
 		} else {
 			return std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
 				_pDevice,
 				pTextureResource,
-				pUploader,
 				D3D12_RESOURCE_STATE_GENERIC_READ
 			);
 		}
@@ -790,6 +794,10 @@ std::shared_ptr<IShaderResource> CommandList::createTextureImpl(const DX::TexMet
 		assert(false);
 	}
 	return nullptr;
+}
+
+void CommandList::trackResource(WRL::ComPtr<ID3D12Resource> &&pResource) {
+	_staleRawResourceBuffers.push_back(std::move(pResource));
 }
 
 #define CheckState(ret, message)			\

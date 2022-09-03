@@ -29,8 +29,8 @@ interface ICommonContext : IContext {
 	virtual std::shared_ptr<SamplerTexture2DArray> createDDSTexture2DArrayFromMemory(const void *pData, size_t sizeInByte) = 0;
 	virtual std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromFile(const std::wstring &fileName) = 0;
 	virtual std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromMemory(const void *pData, size_t sizeInByte) = 0;
-	virtual std::shared_ptr<IShaderResource> createTextureFromFile(const std::wstring &fileName, bool sRGB = false) = 0;
-	virtual std::shared_ptr<IShaderResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB = false) = 0;
+	virtual std::shared_ptr<ITextureResource> createTextureFromFile(const std::wstring &fileName, bool sRGB = false) = 0;
+	virtual std::shared_ptr<ITextureResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB = false) = 0;
 	virtual	void setDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, WRL::ComPtr<ID3D12DescriptorHeap> pHeap) = 0;
 	virtual void setConstantBufferView(const ShaderRegister &sr, const ConstantBufferView &crv) = 0;
 	virtual void setShaderResourceView(const ShaderRegister &sr, const ShaderResourceView &srv) = 0;
@@ -208,11 +208,11 @@ interface IGraphicsContext : virtual ICommonContext {
 	virtual void drawInstanced(size_t vertCount, size_t instanceCount, size_t baseVertexLocation, size_t startInstanceLocation = 0) = 0;
 	virtual void drawIndexedInstanced(size_t indexCountPerInstance, size_t instanceCount, size_t startIndexLocation, size_t baseVertexLocation, size_t startInstanceLocation) = 0;
 
-	virtual void clearColor(std::shared_ptr<RenderTarget2D> pResource, float4 color) = 0;
-	virtual void clearColor(std::shared_ptr<RenderTarget2D> pResource, float colors[4]) = 0;
-	virtual void clearDepth(std::shared_ptr<DepthStencil2D> pResource, float depth) = 0;
-	virtual void clearStencil(std::shared_ptr<DepthStencil2D> pResource, UINT stencil) = 0;
-	virtual void clearDepthStencil(std::shared_ptr<DepthStencil2D> pResource, float depth, UINT stencil) = 0;
+	virtual void clearColor(const RenderTargetView &rtv, float4 color) = 0;
+	virtual void clearColor(const RenderTargetView &rtv, float colors[4]) = 0;
+	virtual void clearDepth(const DepthStencilView &dsv, float depth) = 0;
+	virtual void clearStencil(const DepthStencilView &dsv, UINT stencil) = 0;
+	virtual void clearDepthStencil(const DepthStencilView &dsv, float depth, UINT stencil) = 0;
 };
 
 interface IComputeContext : virtual ICommonContext {

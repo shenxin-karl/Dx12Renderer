@@ -1,14 +1,12 @@
 #pragma once
 #include <Dx12lib/Resource/IResource.h>
+#include <Dx12lib/Resource/IRenderTargetResource.h>
 
 namespace dx12lib {
 
 class RenderTarget2D : public IRenderTarget2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const RenderTargetView & getRTV(size_t mipSlice = 0) const override;
-	D3D12_CLEAR_VALUE getClearValue() const override;
 	~RenderTarget2D() override;
 protected:
 	RenderTarget2D(std::weak_ptr<Device> pDevice, 
@@ -23,19 +21,12 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	D3D12_CLEAR_VALUE _clearValue;
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<RenderTargetView> _rtvMgr;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
 };
 
 class RenderTarget2DArray : public IRenderTarget2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
-	const RenderTargetView & getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~RenderTarget2DArray() override;
 protected:
 	RenderTarget2DArray(std::weak_ptr<Device> pDevice,
@@ -50,20 +41,12 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	D3D12_CLEAR_VALUE _clearValue;
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable std::map<size_t, ViewManager<RenderTargetView>> _planeRtvMgr;
-	mutable std::map<size_t, ViewManager<ShaderResourceView>> _planeSrvMgr;
 };
 
 class RenderTargetCube : public IRenderTargetCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice) const override;
-	const RenderTargetView & getFaceRTV(CubeFace face, size_t mipSlice = 0) const override;
 	~RenderTargetCube() override;
 protected:
 	RenderTargetCube(std::weak_ptr<Device> pDevice,
@@ -77,12 +60,7 @@ protected:
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN
 	);
 private:
-	D3D12_CLEAR_VALUE _clearValue;
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable std::map<CubeFace, ViewManager<RenderTargetView>> _cubeRtvMgr;
-	mutable std::map<CubeFace, ViewManager<ShaderResourceView>> _cubeSrvMgr;
 };
 
 

@@ -2,65 +2,47 @@
 #include <Dx12lib/dx12libStd.h>
 #include <Dx12lib/Resource/IResource.h>
 #include <Dx12lib/Descriptor/DescriptorAllocation.h>
+#include <Dx12lib/Resource/ITextureResource.h>
 
 namespace dx12lib {
 
-class SamplerTexture2D : public IShaderResource2D {
+class SamplerTexture2D : public ITextureResource2D {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
 	~SamplerTexture2D() override;
 protected:
 	SamplerTexture2D(std::weak_ptr<Device> pDevice,
 		WRL::ComPtr<ID3D12Resource> pResource,
-		WRL::ComPtr<ID3D12Resource> pUploader,
 		D3D12_RESOURCE_STATES state
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	WRL::ComPtr<ID3D12Resource> _pUploader;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
 };
 
-class SamplerTexture2DArray : public IShaderResource2DArray {
+class SamplerTexture2DArray : public ITextureResource2DArray {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const override;
 	~SamplerTexture2DArray() override;
 protected:
 	SamplerTexture2DArray(std::weak_ptr<Device> pDevice,
 		WRL::ComPtr<ID3D12Resource> pResource,
-		WRL::ComPtr<ID3D12Resource> pUploader,
 		D3D12_RESOURCE_STATES state
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	WRL::ComPtr<ID3D12Resource> _pUploader;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable std::map<size_t, ViewManager<ShaderResourceView>> _planeSrvMgr;
 };
 
-class SamplerTextureCube : public IShaderResourceCube {
+class SamplerTextureCube : public ITextureResourceCube {
 public:
 	WRL::ComPtr<ID3D12Resource> getD3DResource() const override;
-	const ShaderResourceView & getSRV(size_t mipSlice = 0) const override;
-	const ShaderResourceView & getFaceSRV(CubeFace face, size_t mipSlice = 0) const override;
 	~SamplerTextureCube() override;
 protected:
 	SamplerTextureCube(std::weak_ptr<Device> pDevice,
 		WRL::ComPtr<ID3D12Resource> pResource,
-		WRL::ComPtr<ID3D12Resource> pUploader,
 		D3D12_RESOURCE_STATES state
 	);
 private:
-	std::weak_ptr<Device> _pDevice;
 	WRL::ComPtr<ID3D12Resource> _pResource;
-	WRL::ComPtr<ID3D12Resource> _pUploader;
-	mutable ViewManager<ShaderResourceView> _srvMgr;
-	mutable std::map<CubeFace, ViewManager<ShaderResourceView>> _faceMapSrvMgr;
 };
 
 }

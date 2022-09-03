@@ -2,6 +2,7 @@
 #include <cassert>
 #include <functional>
 #include <RenderGraph/Pass/PassResourceBase.h>
+#include <Dx12lib/Resource/IResource.h>
 #include <Dx12lib/Texture/TextureStd.h>
 #include <Dx12lib/Buffer/BufferStd.h>
 
@@ -13,7 +14,7 @@ class PassResourcePtr : public PassResourceBase {
 public:
 	using PassResourceBase::PassResourceBase;
 
-	template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
+	template<typename U0, typename U1>
 	friend void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs);
 
 	void link(dx12lib::ICommonContext &commonCtx) override {
@@ -57,23 +58,31 @@ public:
 		return pResource._pResource != nullptr;
 	}
 
-	friend void operator>>(std::function<std::shared_ptr<T>()> callback, PassResourcePtr &rhs) {
+	friend void operator>>(std::function<std::shared_ptr<dx12lib::IResource>()> callback, PassResourcePtr &rhs) {
 		assert(rhs.getResourceSource() == nullptr);
 		assert(callback != nullptr);
 		rhs._linkResourceFunc = [&, cb = std::move(callback)]() {
-			rhs._pResource = cb();
+			rhs._pResource = std::dynamic_pointer_cast<T>(cb());
 		};
 	}
 
-	friend void operator>>(std::shared_ptr<T> pOther, PassResourcePtr &rhs) {
+	friend void operator>>(std::shared_ptr<dx12lib::IResource> pOther, PassResourcePtr &rhs) {
 		assert(pOther != nullptr);
 		rhs._linkResourceFunc = [&, ptr = std::move(pOther)]() mutable {
-			rhs._pResource = ptr;
+			rhs._pResource = std::dynamic_pointer_cast<T>(ptr);
 		};
 	}
 
 	void reset() override {
 		_pResource = nullptr;
+	}
+
+	T *get() noexcept {
+		return _pResource.get();
+	}
+
+	const T *get() const noexcept {
+		return _pResource.get();
 	}
 private:
 	bool tryLink() override {
@@ -88,13 +97,13 @@ private:
 };
 
 
-template<typename U0, typename U1> requires(std::is_base_of_v<U1, U0> || std::is_same_v<U0, U1>)
+template<typename U0, typename U1>
 void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs) {
 	assert(static_cast<PassResourceBase *>(&lhs) != static_cast<PassResourceBase *>(&rhs));
 	assert(rhs.getResourceSource() == nullptr);
 	rhs.setResourceSource(&lhs);
 	rhs._linkResourceFunc = [&]() {
-		rhs._pResource = lhs._pResource;
+		rhs._pResource = std::dynamic_pointer_cast<U1>(lhs._pResource);
 	};
 }
 
