@@ -110,6 +110,8 @@ private:
 		VertexBuffer  *pVertexBuffers[kVertexBufferSlotCount];
 		IResource     *pDepthStencil;
 		IndexBuffer   *pIndexBuffer;
+		D3D12_VIEWPORT viewport;
+		D3D12_RECT	   scissorRect;
 		bool           isSetViewport;
 		bool           isSetScissorRect;
 		UINT           stencilRef;

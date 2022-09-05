@@ -28,6 +28,13 @@ FORCEINLINE std::array<float3, AxisAlignedBox::kCornerCount> AxisAlignedBox::get
 	return ret;
 }
 
+FORCEINLINE void AxisAlignedBox::getMinMax(Vector3 &min, Vector3 &max) const noexcept {
+	Vector3 center = Vector3(_boundingBox.Center.x, _boundingBox.Center.y, _boundingBox.Center.z);
+	Vector3 extent = Vector3(_boundingBox.Extents.x, _boundingBox.Extents.y, _boundingBox.Extents.z);
+	min = center - extent;
+	max = center + extent;
+}
+
 FORCEINLINE AxisAlignedBox AxisAlignedBox::createFromCenter(const float3 &center, const float3 &extents) noexcept {
 	AxisAlignedBox ret;
 	ret._boundingBox = DX::BoundingBox(center, extents);

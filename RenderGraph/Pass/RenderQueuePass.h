@@ -15,7 +15,7 @@ public:
 	void reset() override;
 	void setPassCBuffer(std::shared_ptr<dx12lib::IConstantBuffer> pCBuffer);
 	PassType getPassType() const override;
-private:
+protected:
 	std::vector<std::shared_ptr<SubPass>> _subPasses;
 	std::shared_ptr<dx12lib::IConstantBuffer> _pPassCBuffer;
 };

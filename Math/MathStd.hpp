@@ -433,6 +433,7 @@ public:
 	FORCEINLINE AxisAlignedBox transform(const Matrix4 &trans) const noexcept;
 	FORCEINLINE AxisAlignedBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
+	FORCEINLINE void getMinMax(Vector3 &min, Vector3 &max) const noexcept;
 	FORCEINLINE static AxisAlignedBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
 	FORCEINLINE static AxisAlignedBox createFromPoints(size_t count, const float3 *points, size_t stride) noexcept;
 	FORCEINLINE static AxisAlignedBox createMerged(const AxisAlignedBox &b1, const AxisAlignedBox &b2) noexcept;

@@ -364,12 +364,20 @@ CommandList::createIndexBuffer(const void *pData, std::size_t numElements, DXGI_
 }
 
 void CommandList::setViewport(const D3D12_VIEWPORT &viewport) {
+	if (std::memcmp(&viewport, &_currentGPUState.viewport, sizeof(D3D12_VIEWPORT)) == 0)
+		return;
+
 	_currentGPUState.isSetViewport = true;
+	_currentGPUState.viewport = viewport;
 	_pCommandList->RSSetViewports(1, &viewport);
 }
 
 void CommandList::setScissorRect(const D3D12_RECT &rect) {
+	if (std::memcmp(&rect, &_currentGPUState.scissorRect, sizeof(D3D12_RECT)) == 0)
+		return;
+
 	_currentGPUState.isSetScissorRect = true;
+	_currentGPUState.scissorRect = rect;
 	_pCommandList->RSSetScissorRects(1, &rect);
 }
 
