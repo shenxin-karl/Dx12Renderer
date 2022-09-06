@@ -31,6 +31,8 @@ template<size_t N> requires(N <= 3)
 FORCEINLINE FloatStore<3>::operator const FloatStore<N> &() const noexcept {
 	return reinterpret_cast<const FloatStore<N> &>(*this);
 }
+FORCEINLINE FloatStore<3>::FloatStore(const DX::XMFLOAT3 &f3) noexcept : DX::XMFLOAT3(f3) {
+}
 FORCEINLINE float &FloatStore<3>::operator[](size_t n) noexcept {
 	assert(n < 3);
 	return reinterpret_cast<float *>(this)[n];

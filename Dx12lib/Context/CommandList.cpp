@@ -504,7 +504,7 @@ void CommandList::drawIndexedInstanced(size_t indexCountPerInstance,
 	);
 }
 
-void CommandList::clearColor(const RenderTargetView &rtv, float4 color) {
+void CommandList::clearColor(const RenderTargetView &rtv, Math::float4 color) {
 	_pCommandList->ClearRenderTargetView(
 		rtv,
 		reinterpret_cast<FLOAT *>(&color),

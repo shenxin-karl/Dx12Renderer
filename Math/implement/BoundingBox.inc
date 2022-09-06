@@ -1,54 +1,68 @@
-FORCEINLINE AxisAlignedBox::AxisAlignedBox(const Vector3 &min, const Vector3 &max) noexcept {
+FORCEINLINE BoundingBox::BoundingBox(const Vector3 &min, const Vector3 &max) noexcept {
 	DX::BoundingBox::CreateFromPoints(_boundingBox, min, max);
 }
 
-FORCEINLINE AxisAlignedBox::AxisAlignedBox(const DX::BoundingBox &box) noexcept : _boundingBox(box) {
+FORCEINLINE BoundingBox::BoundingBox(const DX::BoundingBox &other) noexcept : _boundingBox(other) {
 }
 
-FORCEINLINE AxisAlignedBox & AxisAlignedBox::operator=(const DX::BoundingBox &box) noexcept {
-	_boundingBox = box;
+FORCEINLINE BoundingBox::BoundingBox(const BoundingBox &lhs, const BoundingBox &rhs) noexcept {
+	*this = createMerged(lhs, rhs);
+}
+
+FORCEINLINE BoundingBox &BoundingBox::operator=(const DX::BoundingBox &other) noexcept {
+	_boundingBox = other;
 	return *this;
 }
 
-FORCEINLINE AxisAlignedBox AxisAlignedBox::transform(const Matrix4 &trans) const noexcept {
-	AxisAlignedBox ret;
-	_boundingBox.Transform(ret._boundingBox, static_cast<DX::XMMATRIX>(trans));
+FORCEINLINE BoundingBox BoundingBox::transform(const Matrix4 &trans) const noexcept {
+	BoundingBox ret;
+	baseCast().Transform(ret.baseCast(), static_cast<DX::XMMATRIX>(trans));
 	return ret;
 }
 
-FORCEINLINE AxisAlignedBox AxisAlignedBox::transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept {
-	AxisAlignedBox ret;
-	_boundingBox.Transform(ret._boundingBox, scale, rotate, translation);
+FORCEINLINE BoundingBox BoundingBox::transform(float scale,
+	const Quaternion &rotate,
+	const Vector3 &translation) const noexcept
+{
+	BoundingBox ret;
+	baseCast().Transform(ret.baseCast(), scale, rotate, translation);
 	return ret;
 }
 
-FORCEINLINE std::array<float3, AxisAlignedBox::kCornerCount> AxisAlignedBox::getCorners() const noexcept {
-	std::array<float3, AxisAlignedBox::kCornerCount> ret;
-	_boundingBox.GetCorners(ret.data());
-	return ret;
+FORCEINLINE std::array<float3, BoundingBox::kCornerCount> BoundingBox::getCorners() const noexcept {
+	std::array<float3, BoundingBox::kCornerCount> corners;
+	baseCast().GetCorners(corners.data());
+	return corners;
 }
 
-FORCEINLINE void AxisAlignedBox::getMinMax(Vector3 &min, Vector3 &max) const noexcept {
-	Vector3 center = Vector3(_boundingBox.Center.x, _boundingBox.Center.y, _boundingBox.Center.z);
-	Vector3 extent = Vector3(_boundingBox.Extents.x, _boundingBox.Extents.y, _boundingBox.Extents.z);
-	min = center - extent;
-	max = center + extent;
+FORCEINLINE void BoundingBox::getMinMax(Vector3 &min, Vector3 &max) const noexcept {
+	Vector3 center(baseCast().Center);
+	Vector3 extents(baseCast().Extents);
+	min = center - extents;
+	max = center + extents;
 }
 
-FORCEINLINE AxisAlignedBox AxisAlignedBox::createFromCenter(const float3 &center, const float3 &extents) noexcept {
-	AxisAlignedBox ret;
-	ret._boundingBox = DX::BoundingBox(center, extents);
-	return ret;
+FORCEINLINE DX::BoundingBox &BoundingBox::baseCast() noexcept {
+	return _boundingBox;
 }
 
-FORCEINLINE AxisAlignedBox AxisAlignedBox::createFromPoints(size_t count, const float3 *points, size_t stride) noexcept {
-	AxisAlignedBox ret;
-	DX::BoundingBox::CreateFromPoints(ret._boundingBox, count, points, stride);
-	return ret;
+FORCEINLINE const DX::BoundingBox &BoundingBox::baseCast() const noexcept {
+	return _boundingBox;
 }
 
-FORCEINLINE AxisAlignedBox AxisAlignedBox::createMerged(const AxisAlignedBox &b1, const AxisAlignedBox &b2) noexcept {
-	AxisAlignedBox ret;
-	DX::BoundingBox::CreateMerged(ret._boundingBox, b1._boundingBox, b2._boundingBox);
-	return ret;
+FORCEINLINE BoundingBox BoundingBox::createFromCenter(const float3 &center, const float3 &extents) noexcept {
+	DX::BoundingBox box(center, extents);
+	return { box };
+}
+
+FORCEINLINE BoundingBox BoundingBox::createFromPoints(size_t count, const float3 *points, size_t stride) noexcept {
+	DX::BoundingBox box;
+	DX::BoundingBox::CreateFromPoints(box, count, points, stride);
+	return box;
+}
+
+FORCEINLINE BoundingBox BoundingBox::createMerged(const BoundingBox &b1, const BoundingBox &b2) noexcept {
+	DX::BoundingBox box;
+	DX::BoundingBox::CreateMerged(box, b1.baseCast(), b2.baseCast());
+	return box;
 }

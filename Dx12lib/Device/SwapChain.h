@@ -18,8 +18,8 @@ public:
 	DXGI_FORMAT getDepthStencilFormat() const;
 	std::shared_ptr<RenderTarget2D> getRenderTarget2D() const;
 	std::shared_ptr<DepthStencil2D> getDepthStencil2D() const;
-	float2 getRenderTargetSize() const;
-	float2 getInvRenderTargetSize() const;
+	Math::float2 getRenderTargetSize() const;
+	Math::float2 getInvRenderTargetSize() const;
 	void present();
 	void setVerticalSync(bool bSync);
 	bool getVerticalSync() const;

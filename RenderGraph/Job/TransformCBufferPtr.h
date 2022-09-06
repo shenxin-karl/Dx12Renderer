@@ -5,14 +5,14 @@
 namespace rgph {
 
 struct TransformStore {
-	float4x4 matWorld;
-	float4x4 matNormal;
+	Math::float4x4 matWorld;
+	Math::float4x4 matNormal;
 };
 
 class TransformCBufferPtr {
 public:
-	const float4x4 &getMatWorld() const;
-	const float4x4 &getMatNormal() const;
+	const Math::float4x4 &getMatWorld() const;
+	const Math::float4x4 &getMatNormal() const;
 	const TransformStore &getTransformStore() const;
 	void setTransformStore(const TransformStore &store);
 	void setTransformCBuffer(FRConstantBufferPtr<TransformStore> pTransformCBuf);

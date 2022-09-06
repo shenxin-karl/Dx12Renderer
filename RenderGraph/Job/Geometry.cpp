@@ -5,6 +5,8 @@
 
 namespace rgph {
 
+using namespace Math;
+
 void Geometry::bind(dx12lib::IGraphicsContext &graphicsCtx, const VertexInputSlots &vertexInputSlot) const {
 	graphicsCtx.setPrimitiveTopology(_topology);
 	for (size_t slot = 0; slot < dx12lib::kVertexBufferSlotCount; ++slot) {
@@ -66,7 +68,7 @@ const DrawArgs & Geometry::getDrawArgs() const {
 	return _drawArgs;
 }
 
-const AxisAlignedBox & Geometry::getWorldAABB() const {
+const BoundingBox & Geometry::getWorldAABB() const {
 	return _worldAABB;
 }
 

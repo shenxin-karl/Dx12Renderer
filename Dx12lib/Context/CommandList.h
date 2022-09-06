@@ -57,7 +57,7 @@ public:
 	void drawInstanced(size_t vertCount, size_t instanceCount, size_t baseVertexLocation, size_t startInstanceLocation) override;
 	void drawIndexedInstanced(size_t indexCountPerInstance, size_t instanceCount, size_t startIndexLocation, size_t baseVertexLocation, size_t startInstanceLocation) override;
 
-	void clearColor(const RenderTargetView &rtv, float4 color) override;
+	void clearColor(const RenderTargetView &rtv, Math::float4 color) override;
 	void clearColor(const RenderTargetView &rtv, float colors[4]) override;
 	void clearDepth(const DepthStencilView &dsv, float depth) override;
 	void clearStencil(const DepthStencilView &dsv, UINT stencil) override;

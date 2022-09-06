@@ -4,7 +4,6 @@
 
 namespace rgph {
 
-using namespace Math;
 struct TechniqueFlag;
 class Technique;
 class Drawable;

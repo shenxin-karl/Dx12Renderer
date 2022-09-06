@@ -5,6 +5,8 @@
 #include <ostream>
 #include <DirectXCollision.h>
 #include <array>
+
+#include "MathStd.hpp"
 #undef min
 #undef max
 #define FORCEINLINE __forceinline
@@ -73,6 +75,7 @@ struct FloatStore<3> : public DX::XMFLOAT3 {
 	FORCEINLINE FloatStore &operator=(const FloatStore &) noexcept = default;
 	FORCEINLINE FloatStore &operator=(FloatStore &&) noexcept = default;
 	FORCEINLINE explicit FloatStore(DX::FXMVECTOR v) noexcept;
+	FORCEINLINE FloatStore(const DX::XMFLOAT3 &f3) noexcept;
 	FORCEINLINE float &operator[](size_t n) noexcept;
 	FORCEINLINE float operator[](size_t n) const noexcept;
 	FORCEINLINE explicit FloatStore(const DX::XMVECTORF32 &color) noexcept;
@@ -418,51 +421,79 @@ public:
 	};
 };
 
-class AxisAlignedBox {
+class BoundingBox;
+class BoundingSphere;
+class BoundingFrustum;
+
+class BoundingBox {
 public:
-	friend class Frustum;
+	friend class BoundingFrustum;
 	static constexpr size_t kCornerCount = 8;
-	FORCEINLINE AxisAlignedBox() noexcept = default;
-	FORCEINLINE AxisAlignedBox(const Vector3 &min, const Vector3 &max) noexcept;
-	FORCEINLINE AxisAlignedBox(const AxisAlignedBox &) noexcept = default;
-	FORCEINLINE AxisAlignedBox(const DX::BoundingBox &) noexcept;
-	FORCEINLINE AxisAlignedBox &operator=(const AxisAlignedBox &) noexcept = default;
-	FORCEINLINE AxisAlignedBox(AxisAlignedBox &&) noexcept = default;
-	FORCEINLINE AxisAlignedBox &operator=(AxisAlignedBox &&) noexcept = default;
-	FORCEINLINE AxisAlignedBox &operator=(const DX::BoundingBox &) noexcept;
-	FORCEINLINE AxisAlignedBox transform(const Matrix4 &trans) const noexcept;
-	FORCEINLINE AxisAlignedBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE BoundingBox() = default;
+	FORCEINLINE BoundingBox(const Vector3 &min, const Vector3 &max) noexcept;
+	FORCEINLINE BoundingBox(const BoundingBox &) noexcept = default;
+	FORCEINLINE BoundingBox(const DX::BoundingBox &) noexcept;
+	FORCEINLINE BoundingBox(const BoundingBox &lhs, const BoundingBox &rhs) noexcept;
+	FORCEINLINE BoundingBox &operator=(const BoundingBox &) noexcept = default;
+	FORCEINLINE BoundingBox(BoundingBox &&) noexcept = default;
+	FORCEINLINE BoundingBox &operator=(BoundingBox &&) noexcept = default;
+	FORCEINLINE BoundingBox &operator=(const DX::BoundingBox &) noexcept;
+	FORCEINLINE BoundingBox transform(const Matrix4 &trans) const noexcept;
+	FORCEINLINE BoundingBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getMinMax(Vector3 &min, Vector3 &max) const noexcept;
-	FORCEINLINE static AxisAlignedBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
-	FORCEINLINE static AxisAlignedBox createFromPoints(size_t count, const float3 *points, size_t stride) noexcept;
-	FORCEINLINE static AxisAlignedBox createMerged(const AxisAlignedBox &b1, const AxisAlignedBox &b2) noexcept;
+	FORCEINLINE DX::BoundingBox &baseCast() noexcept;
+	FORCEINLINE const DX::BoundingBox &baseCast() const noexcept;
+	FORCEINLINE static BoundingBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
+	FORCEINLINE static BoundingBox createFromPoints(size_t count, const float3 *points, size_t stride) noexcept;
+	FORCEINLINE static BoundingBox createMerged(const BoundingBox &b1, const BoundingBox &b2) noexcept;
 private:
 	DX::BoundingBox _boundingBox;
 };
 
-class Frustum {
+class BoundingSphere {
+public:
+	BoundingSphere() noexcept = default;
+	BoundingSphere(BoundingSphere &&) noexcept = default;
+	BoundingSphere &operator=(const BoundingSphere &) noexcept = default;
+	BoundingSphere &operator=(BoundingSphere &&) noexcept = default;
+	BoundingSphere(const BoundingBox &boundingBox) noexcept;
+	BoundingSphere(const DX::BoundingBox &boundingBox) noexcept;
+	BoundingSphere(const DX::BoundingSphere &boundingSphere) noexcept;
+	BoundingSphere(const BoundingSphere &lhs, BoundingSphere &rhs) noexcept;
+	BoundingSphere(const BoundingFrustum &fr) noexcept;
+	const float3 &getCenter() const noexcept;
+	const float &getRadius() const noexcept;
+	DX::BoundingSphere &baseCast() noexcept;
+	const DX::BoundingSphere &baseCast() const noexcept;
+private:
+	DX::BoundingSphere _boundingSphere;
+};
+
+class BoundingFrustum {
 public:
 	static constexpr size_t kCornerCount = 8;
-	FORCEINLINE Frustum() noexcept = default;
-	FORCEINLINE Frustum(const Frustum &) noexcept = default;
-	FORCEINLINE Frustum &operator=(const Frustum &) noexcept = default;
-	FORCEINLINE Frustum(Frustum &&) noexcept = default;
-	FORCEINLINE Frustum &operator=(Frustum &&) noexcept = default;
-	FORCEINLINE Frustum(const float3 &origin, const float4 &orientation, 
+	FORCEINLINE BoundingFrustum() noexcept = default;
+	FORCEINLINE BoundingFrustum(const BoundingFrustum &) noexcept = default;
+	FORCEINLINE BoundingFrustum &operator=(const BoundingFrustum &) noexcept = default;
+	FORCEINLINE BoundingFrustum(BoundingFrustum &&) noexcept = default;
+	FORCEINLINE BoundingFrustum &operator=(BoundingFrustum &&) noexcept = default;
+	FORCEINLINE BoundingFrustum(const float3 &origin, const float4 &orientation, 
 		float rightSlope, float leftSlope, 
 		float topSlope, float bottomSlope, 
 		float near, float far
 	) noexcept;
-	FORCEINLINE Frustum(const Matrix4 &projection) noexcept;
-	FORCEINLINE Frustum transform(const Matrix4 &trans) const noexcept;
-	FORCEINLINE Frustum transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE BoundingFrustum(const Matrix4 &projection) noexcept;
+	FORCEINLINE BoundingFrustum transform(const Matrix4 &trans) const noexcept;
+	FORCEINLINE BoundingFrustum transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE DX::BoundingFrustum &baseCast() noexcept;
+	FORCEINLINE const DX::BoundingFrustum &baseCast() const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getPlanes(Vector4 &nearPlane, Vector4 &farPlane, 
 		Vector4 &rightPlane, Vector4 &leftPlane, 
 		Vector4 &topPlane, Vector4 &bottomPlane
 	) const noexcept;
-	FORCEINLINE DX::ContainmentType contains(_In_ const AxisAlignedBox &box) const noexcept;
+	FORCEINLINE DX::ContainmentType contains(_In_ const BoundingBox &box) const noexcept;
 private:
 	DX::BoundingFrustum _boundingFrustum;
 };
@@ -496,6 +527,8 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// BoolVector
 #if 1
+	
+
 FORCEINLINE BoolVector::BoolVector(DX::FXMVECTOR vec) noexcept : _vec(vec) {
 }
 FORCEINLINE BoolVector::operator DX::XMVECTOR() const {
@@ -515,6 +548,8 @@ FORCEINLINE BoolVector::operator DX::XMVECTOR() const {
 #include "Math/implement/BoundingBox.inc"
 /// BoundingFrustum 
 #include "Math/implement/BoundingFrustum.inc"
+/// BoundingSphere
+#include "Math/implement/BoudingSphere.inc"
 }
 
 

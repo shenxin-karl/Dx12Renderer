@@ -3,6 +3,8 @@
 
 namespace rgph {
 
+using namespace Math;
+
 const float4x4 & TransformCBufferPtr::getMatWorld() const {
 	return getTransformStore().matWorld;
 }

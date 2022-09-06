@@ -103,12 +103,12 @@ std::shared_ptr<DepthStencil2D> SwapChain::getDepthStencil2D() const {
 	return _pDepthStencil2D;
 }
 
-float2 SwapChain::getRenderTargetSize() const {
-	return float2 { static_cast<float>(_width), static_cast<float>(_height)};
+Math::float2 SwapChain::getRenderTargetSize() const {
+	return Math::float2 { static_cast<float>(_width), static_cast<float>(_height)};
 }
 
-float2 SwapChain::getInvRenderTargetSize() const {
-	return float2 { 1.f / static_cast<float>(_width), 1.f / static_cast<float>(_height) };
+Math::float2 SwapChain::getInvRenderTargetSize() const {
+	return Math::float2 { 1.f / static_cast<float>(_width), 1.f / static_cast<float>(_height) };
 }
 
 void SwapChain::updateBuffer(DirectContextProxy pDirectContext) {
