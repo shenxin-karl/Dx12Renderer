@@ -9,6 +9,10 @@ FORCEINLINE BoundingBox::BoundingBox(const BoundingBox &lhs, const BoundingBox &
 	*this = createMerged(lhs, rhs);
 }
 
+FORCEINLINE BoundingBox::BoundingBox(const BoundingSphere &boundingSphere) noexcept {
+	DX::BoundingBox::CreateFromSphere(baseCast(), boundingSphere.baseCast());
+}
+
 FORCEINLINE BoundingBox &BoundingBox::operator=(const DX::BoundingBox &other) noexcept {
 	_boundingBox = other;
 	return *this;
@@ -40,6 +44,12 @@ FORCEINLINE void BoundingBox::getMinMax(Vector3 &min, Vector3 &max) const noexce
 	Vector3 extents(baseCast().Extents);
 	min = center - extents;
 	max = center + extents;
+}
+
+FORCEINLINE std::pair<Vector3, Vector3> BoundingBox::getMinMax() const noexcept {
+	Vector3 vMin, vMax;
+	getMinMax(vMin, vMax);
+	return { vMin, vMax };
 }
 
 FORCEINLINE DX::BoundingBox &BoundingBox::baseCast() noexcept {

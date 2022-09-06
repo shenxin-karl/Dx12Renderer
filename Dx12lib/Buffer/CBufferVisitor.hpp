@@ -14,6 +14,12 @@ public:
 	decltype(auto) operator*() const {
 		return *_ptr;
 	}
+	T *ptr() noexcept {
+		return _ptr;
+	}
+	const T *ptr() const {
+		return _ptr;
+	}
 private:
 	T *const _ptr;
 };

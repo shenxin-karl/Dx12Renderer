@@ -5,6 +5,7 @@
 #include <ostream>
 #include <DirectXCollision.h>
 #include <array>
+#include <utility>
 
 #include "MathStd.hpp"
 #undef min
@@ -243,6 +244,7 @@ public:
 	FORCEINLINE Vector3(DX::XMVECTOR vec) noexcept;
 	FORCEINLINE Vector3(const Scalar &s) noexcept;
 	FORCEINLINE Vector3(float x, float y, float z) noexcept;
+	FORCEINLINE Vector3(const Vector4 &v4) noexcept;
 	FORCEINLINE explicit Vector3(float val) noexcept;
 	FORCEINLINE Vector3 &operator=(const Vector3 &other) noexcept;
 	FORCEINLINE float &operator[](size_t index) noexcept;
@@ -255,7 +257,7 @@ public:
 	FORCEINLINE friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) noexcept;
 public:
 	union {
-		DX::XMVECTOR _vec;
+		DX::XMVECTOR vec;
 #define VEC3
 #include "VectorMember.ini"
 #undef VEC3
@@ -272,6 +274,7 @@ public:
 	FORCEINLINE Vector4(const Scalar &s) noexcept;
 	FORCEINLINE Vector4(float x, float y, float z, float w) noexcept;
 	FORCEINLINE explicit Vector4(float val) noexcept;
+	FORCEINLINE Vector4(const Vector3 &v3, float w) noexcept;
 	FORCEINLINE Vector4 &operator=(const Vector4 &other) noexcept;
 	FORCEINLINE float &operator[](size_t index) noexcept;
 	FORCEINLINE float operator[](size_t index) const noexcept;
@@ -434,6 +437,7 @@ public:
 	FORCEINLINE BoundingBox(const BoundingBox &) noexcept = default;
 	FORCEINLINE BoundingBox(const DX::BoundingBox &) noexcept;
 	FORCEINLINE BoundingBox(const BoundingBox &lhs, const BoundingBox &rhs) noexcept;
+	FORCEINLINE BoundingBox(const BoundingSphere &boundingSphere) noexcept;
 	FORCEINLINE BoundingBox &operator=(const BoundingBox &) noexcept = default;
 	FORCEINLINE BoundingBox(BoundingBox &&) noexcept = default;
 	FORCEINLINE BoundingBox &operator=(BoundingBox &&) noexcept = default;
@@ -442,6 +446,7 @@ public:
 	FORCEINLINE BoundingBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getMinMax(Vector3 &min, Vector3 &max) const noexcept;
+	FORCEINLINE std::pair<Vector3, Vector3> getMinMax() const noexcept;
 	FORCEINLINE DX::BoundingBox &baseCast() noexcept;
 	FORCEINLINE const DX::BoundingBox &baseCast() const noexcept;
 	FORCEINLINE static BoundingBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
@@ -450,6 +455,7 @@ public:
 private:
 	DX::BoundingBox _boundingBox;
 };
+
 
 class BoundingSphere {
 public:

@@ -214,36 +214,39 @@ FORCEINLINE Vector3::Vector3(const float2 &f2, float v) noexcept : Vector3(f2.x,
 
 FORCEINLINE Vector3::Vector3(const float3 &f3) noexcept : Vector3(f3.x, f3.y, f3.z) {
 }
-FORCEINLINE Vector3::Vector3(DX::XMVECTOR vec) noexcept : _vec(vec) {
+FORCEINLINE Vector3::Vector3(DX::XMVECTOR vec) noexcept : vec(vec) {
 }
-FORCEINLINE Vector3::Vector3(const Scalar &s) noexcept : _vec(s) {
+FORCEINLINE Vector3::Vector3(const Scalar &s) noexcept : vec(s) {
 }
 FORCEINLINE Vector3::Vector3(float x, float y, float z) noexcept {
-	_vec = DX::XMVectorSet(x, y, z, 0.0);
+	vec = DX::XMVectorSet(x, y, z, 0.0);
+}
+FORCEINLINE Vector3::Vector3(const Vector4 &v4) noexcept {
+	vec = v4.vec;
 }
 FORCEINLINE Vector3::Vector3(float val) noexcept {
-	_vec = DX::XMVectorSet(val, val, val, 0.0);
+	vec = DX::XMVectorSet(val, val, val, 0.0);
 }
 FORCEINLINE Vector3 &Vector3::operator=(const Vector3 &other) noexcept {
-	_vec = other._vec;
+	vec = other.vec;
 	return *this;
 }
 FORCEINLINE float &Vector3::operator[](size_t index) noexcept {
 	assert(index < 3);
-	return _vec.m128_f32[index];
+	return vec.m128_f32[index];
 }
 FORCEINLINE float Vector3::operator[](size_t index) const noexcept {
 	assert(index < 3);
-	return _vec.m128_f32[index];
+	return vec.m128_f32[index];
 }
 FORCEINLINE DX::XMVECTOR *Vector3::operator&() noexcept {
-	return &_vec;
+	return &vec;
 }
 FORCEINLINE const DX::XMVECTOR *Vector3::operator&() const noexcept {
-	return &_vec;
+	return &vec;
 }
 FORCEINLINE Vector3::operator DX::XMVECTOR() const noexcept {
-	return _vec;
+	return vec;
 }
 
 FORCEINLINE Vector3::operator float2() const noexcept {

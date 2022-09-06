@@ -77,4 +77,8 @@ PassType RenderQueuePass::getPassType() const {
 	return PassType::RenderQueuePass;
 }
 
+std::shared_ptr<dx12lib::IConstantBuffer> RenderQueuePass::getPassCBuffer() const {
+	return _pPassCBuffer;
+}
+
 }

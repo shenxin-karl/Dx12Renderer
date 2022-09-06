@@ -218,6 +218,8 @@ FORCEINLINE Vector4::Vector4(float x, float y, float z, float w) noexcept {
 FORCEINLINE Vector4::Vector4(float val) noexcept {
 	vec = DX::XMVectorSet(val, val, val, val);
 }
+FORCEINLINE Vector4::Vector4(const Vector3 &v3, float w) noexcept : Vector4(v3.x, v3.y, v3.z, w) {
+}
 FORCEINLINE Vector4 &Vector4::operator=(const Vector4 &other) noexcept {
 	vec = other.vec;
 	return *this;
