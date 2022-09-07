@@ -254,6 +254,8 @@ public:
 	FORCEINLINE operator DX::XMVECTOR() const noexcept;
 	FORCEINLINE explicit operator float2() const noexcept;
 	FORCEINLINE explicit operator float3() const noexcept;
+	FORCEINLINE static const Vector3 &identity() noexcept;
+	FORCEINLINE static const Vector3 &zero() noexcept;
 	FORCEINLINE friend std::ostream &operator<<(std::ostream &os, const Vector3 &v) noexcept;
 public:
 	union {

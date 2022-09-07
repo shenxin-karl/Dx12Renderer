@@ -256,6 +256,17 @@ FORCEINLINE Vector3::operator float2() const noexcept {
 FORCEINLINE Vector3::operator float3() const noexcept {
 	return xyz;
 }
+
+FORCEINLINE const Vector3 & Vector3::identity() noexcept {
+	static Vector3 obj(1.f, 1.f, 1.f);
+	return obj;
+}
+
+FORCEINLINE const Vector3 & Vector3::zero() noexcept {
+	static Vector3 obj(0.f, 0.f, 0.f);
+	return obj;
+}
+
 FORCEINLINE std::ostream &operator<<(std::ostream &os, const Vector3 &v) noexcept {
 	os << '(' << v.x << ", " << v.y << ", " << v.z << ')';
 	return os;

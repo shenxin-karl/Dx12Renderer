@@ -56,7 +56,7 @@ FORCEINLINE Quaternion Quaternion::operator*(const Quaternion &rhs) const noexce
 }
 
 FORCEINLINE Vector3 Quaternion::operator*(const Vector3 &rhs) const noexcept {
-	return Vector3(DX::XMVector3Rotate(rhs._vec, _vec));
+	return Vector3(DX::XMVector3Rotate(rhs.vec, _vec));
 }
 
 FORCEINLINE Quaternion &Quaternion::operator=(const Quaternion &rhs) noexcept {
