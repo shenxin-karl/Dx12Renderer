@@ -33,6 +33,10 @@ FORCEINLINE BoundingBox BoundingBox::transform(float scale,
 	return ret;
 }
 
+FORCEINLINE DX::ContainmentType BoundingBox::contains(const BoundingBox &other) const noexcept {
+	return baseCast().Contains(other.baseCast());
+}
+
 FORCEINLINE std::array<float3, BoundingBox::kCornerCount> BoundingBox::getCorners() const noexcept {
 	std::array<float3, BoundingBox::kCornerCount> corners;
 	baseCast().GetCorners(corners.data());

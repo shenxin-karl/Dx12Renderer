@@ -7,6 +7,7 @@
 
 namespace rgph {
 
+class GraphicsPass;
 class SubPass {
 public:
 	SubPass(std::weak_ptr<dx12lib::GraphicsPSO> pGraphicsPso);
@@ -28,12 +29,20 @@ public:
 	const dx12lib::ShaderRegister &getPassCBufferShaderRegister() const;
 	const std::vector<std::shared_ptr<Bindable>> &getBindables() const;
 	void execute(dx12lib::IGraphicsContext &graphicsCtx, const std::vector<Job> &jobs) const;
+	void setGraphicsPass(const GraphicsPass *pGraphicsPass);
+	const GraphicsPass *getGraphicsPass() const;
 	bool valid() const;
+
+	using BindCallBackType = std::function<void(const SubPass *, dx12lib::IGraphicsContext &)>;
+	// [&](const rgph::SubPass *pSubPass, dx12lib::IGraphicsContext &graphicsCtx)
+	void setOnBindCallback(const BindCallBackType &pOnBindCallBack);
 protected:
 	bool _finalize = false;
 	std::vector<Job> _jobs;
 	std::string _subPassName;
+	BindCallBackType _pOnBindCallback;
 	VertexInputSlots _vertexDataSlots;
+	const GraphicsPass *_pGraphicsPass = nullptr;
 	dx12lib::ShaderRegister _transformCBufferShaderRegister;
 	dx12lib::ShaderRegister _passCBufferShaderRegister;
 	std::weak_ptr<dx12lib::GraphicsPSO> _pGraphicsPso;

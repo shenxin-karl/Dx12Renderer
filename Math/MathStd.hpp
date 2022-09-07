@@ -446,6 +446,7 @@ public:
 	FORCEINLINE BoundingBox &operator=(const DX::BoundingBox &) noexcept;
 	FORCEINLINE BoundingBox transform(const Matrix4 &trans) const noexcept;
 	FORCEINLINE BoundingBox transform(float scale, const Quaternion &rotate, const Vector3 &translation) const noexcept;
+	FORCEINLINE DX::ContainmentType contains(const BoundingBox &other) const noexcept;
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getMinMax(Vector3 &min, Vector3 &max) const noexcept;
 	FORCEINLINE std::pair<Vector3, Vector3> getMinMax() const noexcept;

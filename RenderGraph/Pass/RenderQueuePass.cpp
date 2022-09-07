@@ -25,6 +25,7 @@ void RenderQueuePass::addSubPass(std::shared_ptr<SubPass> pSubPass) {
 			return;
 		}
 	}
+	pSubPass->setGraphicsPass(this);
 	_subPasses.push_back(std::move(pSubPass));
 }
 

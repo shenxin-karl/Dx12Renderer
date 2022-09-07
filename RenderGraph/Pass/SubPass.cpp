@@ -30,6 +30,8 @@ std::shared_ptr<Bindable> SubPass::getBindableByType(BindableType bindableType) 
 
 void SubPass::bind(dx12lib::IGraphicsContext &graphicsCtx) const {
 	graphicsCtx.setGraphicsPSO(_pGraphicsPso.lock());
+	if (_pOnBindCallback != nullptr)
+		_pOnBindCallback(this, graphicsCtx);
 }
 
 void SubPass::accept(const Job &job) {
@@ -94,8 +96,20 @@ void SubPass::execute(dx12lib::IGraphicsContext &graphicsCtx, const std::vector<
 		job.execute(graphicsCtx, _vertexDataSlots, _transformCBufferShaderRegister);
 }
 
+void SubPass::setGraphicsPass(const GraphicsPass *pGraphicsPass) {
+	_pGraphicsPass = pGraphicsPass;
+}
+
+const GraphicsPass * SubPass::getGraphicsPass() const {
+	return _pGraphicsPass;
+}
+
 bool SubPass::valid() const {
 	return _pGraphicsPso.use_count() > 0;
+}
+
+void SubPass::setOnBindCallback(const BindCallBackType &pOnBindCallBack) {
+	_pOnBindCallback = pOnBindCallBack;
 }
 
 }
