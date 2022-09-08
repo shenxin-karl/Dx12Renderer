@@ -56,6 +56,10 @@ FORCEINLINE std::pair<Vector3, Vector3> BoundingBox::getMinMax() const noexcept 
 	return { vMin, vMax };
 }
 
+FORCEINLINE const float3 & BoundingBox::getCenter() const noexcept {
+	return  reinterpret_cast<const float3 &>(baseCast().Center);
+}
+
 FORCEINLINE DX::BoundingBox &BoundingBox::baseCast() noexcept {
 	return _boundingBox;
 }

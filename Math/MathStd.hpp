@@ -450,6 +450,7 @@ public:
 	FORCEINLINE std::array<float3, kCornerCount> getCorners() const noexcept;
 	FORCEINLINE void getMinMax(Vector3 &min, Vector3 &max) const noexcept;
 	FORCEINLINE std::pair<Vector3, Vector3> getMinMax() const noexcept;
+	FORCEINLINE const float3 &getCenter() const noexcept;
 	FORCEINLINE DX::BoundingBox &baseCast() noexcept;
 	FORCEINLINE const DX::BoundingBox &baseCast() const noexcept;
 	FORCEINLINE static BoundingBox createFromCenter(const float3 &center, const float3 &extents) noexcept;
@@ -473,6 +474,9 @@ public:
 	BoundingSphere(const BoundingFrustum &fr) noexcept;
 	const float3 &getCenter() const noexcept;
 	const float &getRadius() const noexcept;
+	void setCenter(const float3 &offset) noexcept;
+	void setCenter(const Vector3 &offset) noexcept;
+	void setRadius(float radius) noexcept;
 	DX::BoundingSphere &baseCast() noexcept;
 	const DX::BoundingSphere &baseCast() const noexcept;
 private:
