@@ -384,6 +384,7 @@ public:
 	static FORCEINLINE Matrix4 makeScale(const Vector3 &scale) noexcept;
 	static FORCEINLINE Matrix4 makeTranslation(const Vector3 &vec) noexcept;
 	static FORCEINLINE Matrix4 makeTranslation(float ox, float oy, float oz) noexcept;
+	static FORCEINLINE Matrix4 makeTranslation(float offset) noexcept;
 	static FORCEINLINE Matrix4 identity() noexcept;
 private:
 	DX::XMMATRIX _mat;

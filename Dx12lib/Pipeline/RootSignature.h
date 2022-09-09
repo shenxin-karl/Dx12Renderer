@@ -45,7 +45,8 @@ public:
 	void reset(size_t numRootParams, size_t numStaticSamplers = 0);
 	void finalize(D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	void initStaticSampler(size_t index, const D3D12_STATIC_SAMPLER_DESC &desc);
-	void initStaticSampler(size_t index, const std::array<CD3DX12_STATIC_SAMPLER_DESC, 6> &samplers);
+	template<size_t N>
+	void initStaticSampler(size_t index, const std::array<CD3DX12_STATIC_SAMPLER_DESC, N> &samplers);
 	WRL::ComPtr<ID3D12RootSignature> getRootSignature() const;
 	std::bitset<kMaxDescriptorTables> getDescriptorTableBitMask(D3D12_DESCRIPTOR_HEAP_TYPE heapType);
 	RootParameter &operator[](size_t index);
@@ -68,6 +69,14 @@ private:
 	DescriptorsPerTable				  _rootParamDescriptorPerTable[kDynamicDescriptorHeapCount];
 	std::bitset<kMaxDescriptorTables> _rootParamBitMask[kDynamicDescriptorHeapCount];
 };
+
+template <size_t N>
+void RootSignature::initStaticSampler(size_t index, const std::array<CD3DX12_STATIC_SAMPLER_DESC, N> &samplers) {
+	size_t i = 0;
+	size_t limit = std::min(index+N, _numStaticSamplers);
+	for (size_t j = index; j < limit; ++i, ++j)
+		_pStaticSamplerArray[i] = samplers[i];
+}
 
 }
 

@@ -207,11 +207,6 @@ void RootSignature::initStaticSampler(size_t index, const D3D12_STATIC_SAMPLER_D
 	_pStaticSamplerArray[index] = desc;
 }
 
-void RootSignature::initStaticSampler(size_t index, const std::array<CD3DX12_STATIC_SAMPLER_DESC, 6> &samplers) {
-	assert(index + 6 <= _numStaticSamplers);
-	for (size_t i = 0; i < 6; ++i)
-		_pStaticSamplerArray[index + i] = samplers[i];
-}
 
 WRL::ComPtr<ID3D12RootSignature> RootSignature::getRootSignature() const {
 	return _pRootSignature;

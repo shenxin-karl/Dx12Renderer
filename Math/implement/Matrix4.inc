@@ -129,6 +129,9 @@ FORCEINLINE Matrix4 Matrix4::makeTranslation(const Vector3 &vec) noexcept {
 FORCEINLINE Matrix4 Matrix4::makeTranslation(float ox, float oy, float oz) noexcept {
 	return Matrix4(DX::XMMatrixTranslation(ox, oy, oz));
 }
+FORCEINLINE Matrix4 Matrix4::makeTranslation(float offset) noexcept {
+	return Matrix4(DX::XMMatrixTranslation(offset, offset, offset));
+}
 FORCEINLINE Matrix4 Matrix4::identity() noexcept {
 	return DX::XMMatrixIdentity();
 }
