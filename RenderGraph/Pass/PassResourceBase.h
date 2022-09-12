@@ -1,9 +1,11 @@
 #pragma once
 #include <d3d12.h>
+#include <memory>
 #include <string>
 
 
 namespace dx12lib {
+	struct IResource;
 	struct ICommonContext;
 }
 
@@ -23,9 +25,13 @@ public:
 	virtual void link(dx12lib::ICommonContext &commonCtx) = 0;
 	virtual void reset() = 0;
 	virtual ~PassResourceBase() = default;
+
+	template<typename T> requires(std::is_base_of_v<dx12lib::IResource, T>)
+	std::shared_ptr<T> cast() const;
 private:
 	friend class RenderGraph;
 	virtual bool tryLink() = 0;
+	virtual std::shared_ptr<dx12lib::IResource> getResource() const = 0;
 protected:
 	std::string _resourceName;
 	ExecutablePass *_pExecutablePass;
@@ -38,5 +44,13 @@ public:
 	constexpr static D3D12_RESOURCE_STATES kNoneType = static_cast<D3D12_RESOURCE_STATES>(-1);
 	D3D12_RESOURCE_STATES preExecuteState = kNoneType;
 };
+
+template <typename T> requires (std::is_base_of_v<dx12lib::IResource, T>)
+std::shared_ptr<T> PassResourceBase::cast() const {
+	auto pResource = getResource();
+	auto pRet = std::dynamic_pointer_cast<T>(pResource);
+	assert(pRet != nullptr);
+	return pRet;
+}
 
 }

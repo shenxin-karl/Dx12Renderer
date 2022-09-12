@@ -14,15 +14,11 @@ D3D12_CLEAR_VALUE IDepthStencil::getClearValue() const {
 	return _clearValue;
 }
 
+
 /// ************************ IDepthStencil2D ********************************
 #if 1
 bool IDepthStencil2D::checkSRVState(D3D12_RESOURCE_STATES state) const {
 	return state & D3D12_RESOURCE_STATE_DEPTH_READ;
-}
-
-const ShaderResourceView & IDepthStencil2D::getSRV(size_t mipSlice) const {
-	assert(mipSlice != 0);
-	return ITextureResource2D::getSRV(mipSlice);
 }
 
 const DepthStencilView & IDepthStencil2D::getDSV() const {
@@ -33,10 +29,18 @@ const DepthStencilView & IDepthStencil2D::getDSV() const {
 	auto pSharedDevice = getDevice().lock();
 	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
+	auto resourceDesc = pResource->GetDesc();
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	depthStencilViewDesc.Format = getDepthDSVFormat(resourceDesc.Format);
+	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = 0;
+	depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+	assert(isDepthFormat(depthStencilViewDesc.Format));
 	_dsv = DepthStencilView(descriptor, this);
 	pSharedDevice->getD3DDevice()->CreateDepthStencilView(
 		pResource.Get(),
-		nullptr,
+		&depthStencilViewDesc,
 		_dsv.getCPUDescriptorHandle()
 	);
 
@@ -61,7 +65,7 @@ const DepthStencilView & IDepthStencil2DArray::getPlaneDSV(size_t planeSlice) co
 	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-	dsvDesc.Format = resourceDesc.Format;
+	dsvDesc.Format = getDepthDSVFormat(resourceDesc.Format);
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 	dsvDesc.Texture2DArray.MipSlice = 0;
@@ -77,5 +81,6 @@ const DepthStencilView & IDepthStencil2DArray::getPlaneDSV(size_t planeSlice) co
 	auto &res = (_planeDsvMgr[planeSlice] = dsv);
 	return res;
 }
+
 #endif
 }

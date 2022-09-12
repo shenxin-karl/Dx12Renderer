@@ -9,10 +9,12 @@
 namespace rgph {
 
 
-template<typename T>
+template<typename T> requires(std::is_base_of_v<dx12lib::IResource, T>)
 class PassResourcePtr : public PassResourceBase {
 public:
 	using PassResourceBase::PassResourceBase;
+
+	using ResourceType = T;
 
 	template<typename U0, typename U1>
 	friend void operator>>(PassResourcePtr<U0> &lhs, PassResourcePtr<U1> &rhs);
@@ -90,6 +92,10 @@ private:
 			return false;
 		_linkResourceFunc();
 		return _pResource != nullptr;
+	}
+
+	std::shared_ptr<dx12lib::IResource> getResource() const override {
+		return std::static_pointer_cast<dx12lib::IResource>(_pResource);
 	}
 private:
 	std::shared_ptr<T> _pResource;

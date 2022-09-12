@@ -14,12 +14,6 @@ protected:
 	DepthStencil2D(std::weak_ptr<Device> pDevice, 
 		size_t width, 
 		size_t height,
-		const D3D12_CLEAR_VALUE *pClearValue = nullptr,
-		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN
-	);
-	DepthStencil2D(std::weak_ptr<Device> pDevice, 
-		WRL::ComPtr<ID3D12Resource> pResource,
-		D3D12_RESOURCE_STATES state,
 		const D3D12_CLEAR_VALUE *pClearValue = nullptr
 	);
 private:

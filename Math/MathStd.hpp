@@ -440,7 +440,8 @@ public:
 	FORCEINLINE BoundingBox(const BoundingBox &) noexcept = default;
 	FORCEINLINE BoundingBox(const DX::BoundingBox &) noexcept;
 	FORCEINLINE BoundingBox(const BoundingBox &lhs, const BoundingBox &rhs) noexcept;
-	FORCEINLINE BoundingBox(const BoundingSphere &boundingSphere) noexcept;
+	FORCEINLINE explicit BoundingBox(const BoundingSphere &boundingSphere) noexcept;
+	FORCEINLINE explicit BoundingBox(const BoundingFrustum &boundingFrustum) noexcept;
 	FORCEINLINE BoundingBox &operator=(const BoundingBox &) noexcept = default;
 	FORCEINLINE BoundingBox(BoundingBox &&) noexcept = default;
 	FORCEINLINE BoundingBox &operator=(BoundingBox &&) noexcept = default;
@@ -464,22 +465,22 @@ private:
 
 class BoundingSphere {
 public:
-	BoundingSphere() noexcept = default;
-	BoundingSphere(BoundingSphere &&) noexcept = default;
-	BoundingSphere &operator=(const BoundingSphere &) noexcept = default;
-	BoundingSphere &operator=(BoundingSphere &&) noexcept = default;
-	BoundingSphere(const BoundingBox &boundingBox) noexcept;
-	BoundingSphere(const DX::BoundingBox &boundingBox) noexcept;
-	BoundingSphere(const DX::BoundingSphere &boundingSphere) noexcept;
-	BoundingSphere(const BoundingSphere &lhs, BoundingSphere &rhs) noexcept;
-	BoundingSphere(const BoundingFrustum &fr) noexcept;
-	const float3 &getCenter() const noexcept;
-	const float &getRadius() const noexcept;
-	void setCenter(const float3 &offset) noexcept;
-	void setCenter(const Vector3 &offset) noexcept;
-	void setRadius(float radius) noexcept;
-	DX::BoundingSphere &baseCast() noexcept;
-	const DX::BoundingSphere &baseCast() const noexcept;
+	FORCEINLINE BoundingSphere() noexcept = default;
+	FORCEINLINE BoundingSphere(BoundingSphere &&) noexcept = default;
+	FORCEINLINE BoundingSphere &operator=(const BoundingSphere &) noexcept = default;
+	FORCEINLINE BoundingSphere &operator=(BoundingSphere &&) noexcept = default;
+	FORCEINLINE explicit BoundingSphere(const BoundingBox &boundingBox) noexcept;
+	FORCEINLINE explicit BoundingSphere(const DX::BoundingBox &boundingBox) noexcept;
+	FORCEINLINE explicit BoundingSphere(const DX::BoundingSphere &boundingSphere) noexcept;
+	FORCEINLINE explicit BoundingSphere(const BoundingFrustum &fr) noexcept;
+	FORCEINLINE BoundingSphere(const BoundingSphere &lhs, BoundingSphere &rhs) noexcept;
+	FORCEINLINE const float3 &getCenter() const noexcept;
+	FORCEINLINE const float &getRadius() const noexcept;
+	FORCEINLINE void setCenter(const float3 &offset) noexcept;
+	FORCEINLINE void setCenter(const Vector3 &offset) noexcept;
+	FORCEINLINE void setRadius(float radius) noexcept;
+	FORCEINLINE DX::BoundingSphere &baseCast() noexcept;
+	FORCEINLINE const DX::BoundingSphere &baseCast() const noexcept;
 private:
 	DX::BoundingSphere _boundingSphere;
 };

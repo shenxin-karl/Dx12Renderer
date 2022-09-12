@@ -41,8 +41,10 @@ UploadBuffer::~UploadBuffer() {
 
 void UploadBuffer::map() const {
 	assert(_pUploadResource != nullptr);
-	if (_pMappedData == nullptr)
+	if (_pMappedData == nullptr) {
 		_pUploadResource->Map(0, nullptr, reinterpret_cast<void **>(&_pMappedData));
+		assert(_pMappedData != nullptr);
+	}
 }
 
 void UploadBuffer::copyData(size_t elementIndex, const void *pData) {

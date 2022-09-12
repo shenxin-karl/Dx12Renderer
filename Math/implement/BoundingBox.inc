@@ -13,6 +13,17 @@ FORCEINLINE BoundingBox::BoundingBox(const BoundingSphere &boundingSphere) noexc
 	DX::BoundingBox::CreateFromSphere(baseCast(), boundingSphere.baseCast());
 }
 
+FORCEINLINE BoundingBox::BoundingBox(const BoundingFrustum &boundingFrustum) noexcept {
+	Vector3 vMin = Vector3(std::numeric_limits<float>::max());
+	Vector3 vMax = Vector3(std::numeric_limits<float>::min());
+	for (auto &c : boundingFrustum.getCorners()) {
+		Vector3 p(c);
+		vMin = min(vMin, p);
+		vMax = max(vMax, p);
+	}
+	*this = BoundingBox(vMin, vMax);
+}
+
 FORCEINLINE BoundingBox &BoundingBox::operator=(const DX::BoundingBox &other) noexcept {
 	_boundingBox = other;
 	return *this;

@@ -2,8 +2,12 @@
 template <typename T, bool EnableAssign, size_t... I>
 template <typename> requires (EnableAssign)
 FORCEINLINE T &Swizzle<T, EnableAssign, I...>::operator=(const T &other) noexcept {
-	((at<I>() = other[I]), ...);
 	constexpr size_t idx = indices[0];
+	if constexpr(sizeof...(I) > 1)
+		((at<I>() = other[I]), ...);
+	else
+		at<idx>() = other;
+
 	return reinterpret_cast<T &>(at<idx>());
 }
 template <typename T, bool EnableAssign, size_t... I>

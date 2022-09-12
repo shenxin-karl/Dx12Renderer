@@ -20,11 +20,11 @@ DepthStencil2D::~DepthStencil2D() {
 DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice, 
 	size_t width,
 	size_t height,
-	const D3D12_CLEAR_VALUE *pClearValue,
-	DXGI_FORMAT depthStencilFormat)
+	const D3D12_CLEAR_VALUE *pClearValue)
 {
 	setDevice(pDevice);
 	auto pSharedDevice = pDevice.lock();
+	DXGI_FORMAT depthStencilFormat = (pClearValue != nullptr) ? pClearValue->Format : DXGI_FORMAT_UNKNOWN;
 	if (depthStencilFormat == DXGI_FORMAT_UNKNOWN)
 		depthStencilFormat = pSharedDevice->getDesc().depthStencilFormat;
 
@@ -32,6 +32,9 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 		_clearValue.Format = depthStencilFormat;
 	else
 		_clearValue = *pClearValue;
+
+
+	auto typelessFormat = getTypelessFormat(depthStencilFormat);
 
 	assert(_clearValue.Format != DXGI_FORMAT_UNKNOWN);
 	pClearValue = &_clearValue;
@@ -42,7 +45,7 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 	depthStencilDesc.Height = static_cast<UINT>(height);
 	depthStencilDesc.DepthOrArraySize = 1;
 	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.Format = depthStencilFormat;
+	depthStencilDesc.Format = typelessFormat;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -59,22 +62,6 @@ DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice,
 	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(_pResource.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 }
 
-DepthStencil2D::DepthStencil2D(std::weak_ptr<Device> pDevice, 
-	WRL::ComPtr<ID3D12Resource> pResource, 
-	D3D12_RESOURCE_STATES state, 
-	const D3D12_CLEAR_VALUE *pClearValue)
-{
-	setDevice(pDevice);
-	if (pClearValue != nullptr)
-		_clearValue = *pClearValue;
-	else
-		_clearValue.Format = pResource->GetDesc().Format;
-
-	assert(_clearValue.Format != DXGI_FORMAT_UNKNOWN);
-	_pResource = pResource;
-	auto pSharedDevice = pDevice.lock();
-	pSharedDevice->getGlobalResourceState()->addGlobalResourceState(pResource.Get(), state);
-}
 #endif
 
 /// DepthStencil2DArray
@@ -106,6 +93,8 @@ DepthStencil2DArray::DepthStencil2DArray(std::weak_ptr<Device> pDevice,
 		_clearValue = *pClearValue;
 	}
 
+	auto typelessFormat = getTypelessFormat(_clearValue.Format);
+
 	D3D12_RESOURCE_DESC depthStencilDesc{};
 	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	depthStencilDesc.Alignment = 0;
@@ -113,7 +102,7 @@ DepthStencil2DArray::DepthStencil2DArray(std::weak_ptr<Device> pDevice,
 	depthStencilDesc.Height = static_cast<UINT>(height);
 	depthStencilDesc.DepthOrArraySize = static_cast<UINT16>(planeSize);
 	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.Format = pClearValue->Format;
+	depthStencilDesc.Format = typelessFormat;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;

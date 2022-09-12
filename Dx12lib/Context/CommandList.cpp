@@ -453,7 +453,7 @@ void CommandList::setRenderTarget(const DepthStencilView &dsv) {
 	_pCommandList->OMSetRenderTargets(
 		0,
 		nullptr,
-		1,
+		false,
 		RVPtr(dsv.getCPUDescriptorHandle())
 	);
 }

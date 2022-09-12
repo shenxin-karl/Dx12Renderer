@@ -13,7 +13,6 @@ protected:
 
 interface IDepthStencil2D : IDepthStencil, ITextureResource2D {
 	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
-	const ShaderResourceView &getSRV(size_t mipSlice) const override;
 	const DepthStencilView &getDSV() const;
 private:
 	mutable DepthStencilView _dsv;
@@ -23,6 +22,7 @@ interface IDepthStencil2DArray : IDepthStencil, ITextureResource2DArray {
 	bool checkSRVState(D3D12_RESOURCE_STATES state) const override;
 	const DepthStencilView &getPlaneDSV(size_t planeSlice) const;
 private:
+	mutable DepthStencilView _dsv;
 	mutable std::map<size_t, DepthStencilView> _planeDsvMgr;
 };
 
