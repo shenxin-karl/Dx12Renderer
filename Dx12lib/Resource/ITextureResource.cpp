@@ -16,7 +16,7 @@ ShaderResourceDimension ITextureResource2D::getDimension() const {
 }
 
 const ShaderResourceView & ITextureResource2D::getSRV(size_t mipSlice) const {
-	assert(mipSlice < pResource->GetDesc().MipLevels);
+	assert(mipSlice < getD3DResource()->GetDesc().MipLevels);
 	if (_srvMgr.exist(mipSlice))
 		return _srvMgr.get(mipSlice);
 
