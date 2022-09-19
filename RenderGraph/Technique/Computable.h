@@ -15,10 +15,13 @@ class Computable {
 public:
 	Computable(std::weak_ptr<dx12lib::ComputePSO> pComputePSO);
 	void addBindable(std::shared_ptr<Bindable> pBindable);
+	void clearBindables();
+	void setComputePSO(std::weak_ptr<dx12lib::ComputePSO> pComputePSO);
+	auto getComputePSO() const -> std::shared_ptr<dx12lib::ComputePSO>;
 	void setDispatchArgs(const DispatchArgs &dispatchArgs);
 	auto getDispatchArgs() const -> const DispatchArgs &;
 	auto getName() const -> const std::string &;
-	virtual void compute(dx12lib::IDirectContext &directCtx);
+	void compute(dx12lib::IDirectContext &directCtx);
 private:
 	std::string _name;
 	DispatchArgs _dispatchArgs;

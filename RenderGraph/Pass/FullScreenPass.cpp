@@ -1,4 +1,5 @@
 #include "FullScreenPass.h"
+#include "FullScreenRenderable.h"
 
 namespace rgph {
 
@@ -9,6 +10,8 @@ FullScreenPass::FullScreenPass(const std::string &passName, bool rtActive, bool 
 
 void FullScreenPass::execute(dx12lib::DirectContextProxy pDirectCtx) {
 	GraphicsPass::execute(pDirectCtx);
+	assert(_pFullScreenRenderable != nullptr);
+	_pFullScreenRenderable->execute(*pDirectCtx);
 }
 
 void FullScreenPass::setFullScreenRenderable(std::shared_ptr<FullScreenRenderable> pFullScreenRenderable) {

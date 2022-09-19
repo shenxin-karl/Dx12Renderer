@@ -68,7 +68,8 @@ public:
 		};
 	}
 
-	friend void operator>>(std::shared_ptr<dx12lib::IResource> &pOther, PassResourcePtr &rhs) {
+	template<typename U> requires(std::is_base_of_v<dx12lib::IResource, U>)
+	friend void operator>>(const std::shared_ptr<U> &pOther, PassResourcePtr &rhs) {
 		assert(pOther != nullptr);
 		rhs._linkResourceFunc = [&]() mutable {
 			rhs._pResource = std::dynamic_pointer_cast<T>(pOther);
@@ -86,6 +87,10 @@ public:
 	const T *get() const noexcept {
 		return _pResource.get();
 	}
+
+	std::shared_ptr<dx12lib::IResource> getResource() const override {
+		return std::static_pointer_cast<dx12lib::IResource>(_pResource);
+	}
 private:
 	bool tryLink() override {
 		if (_linkResourceFunc == nullptr)
@@ -94,9 +99,6 @@ private:
 		return _pResource != nullptr;
 	}
 
-	std::shared_ptr<dx12lib::IResource> getResource() const override {
-		return std::static_pointer_cast<dx12lib::IResource>(_pResource);
-	}
 private:
 	std::shared_ptr<T> _pResource;
 	std::function<void()> _linkResourceFunc;

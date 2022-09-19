@@ -4,13 +4,12 @@ namespace rgph {
 
 std::shared_ptr<SamplerTextureBindable> SamplerTextureBindable::make(dx12lib::ShaderRegister shaderRegister,
 	std::shared_ptr<dx12lib::ITextureResource> pShaderResource, 
-	size_t mipMap,
-	const std::source_location &sourceLocation)
+	size_t mipMap)
 {
 	assert(shaderRegister.slot && !shaderRegister.slot.isSampler());
 	assert(pShaderResource != nullptr);
 
-	auto pBindable = std::make_shared<SamplerTextureBindable>(sourceLocation);
+	auto pBindable = std::make_shared<SamplerTextureBindable>();
 	pBindable->_mipMap = mipMap;
 	pBindable->_shaderRegister = shaderRegister;
 	pBindable->_pShaderResource = pShaderResource;

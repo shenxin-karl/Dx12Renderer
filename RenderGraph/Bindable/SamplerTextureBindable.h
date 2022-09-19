@@ -10,11 +10,10 @@ class SamplerTextureBindable : public Bindable {
 public:
 	static std::shared_ptr<SamplerTextureBindable> make(dx12lib::ShaderRegister shaderRegister, 
 		std::shared_ptr<dx12lib::ITextureResource> pShaderResource, 
-		size_t mipMap = 0,
-		DECLARE_SOURCE_LOCATION_ARG
+		size_t mipMap = 0
 	);
 	void bind(dx12lib::IGraphicsContext &graphicsCtx) const override;
-	SamplerTextureBindable(const std::source_location &sr) : Bindable(BindableType::SamplerTexture, sr) {}
+	SamplerTextureBindable() : Bindable(BindableType::SamplerTexture) {}
 private:
 	size_t _mipMap;
 	dx12lib::ShaderRegister _shaderRegister;

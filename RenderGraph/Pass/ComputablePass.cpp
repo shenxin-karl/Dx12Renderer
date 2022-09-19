@@ -18,7 +18,7 @@ auto ComputablePass::getComputable() const -> std::shared_ptr<Computable> {
 }
 
 PassType ComputablePass::getPassType() const {
-	return PassType::
+	return PassType::ComputablePass;
 }
 
 }
