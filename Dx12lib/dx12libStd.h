@@ -136,6 +136,7 @@ interface IContext;
 interface ICommonContext;
 interface IGraphicsContext;
 interface IComputeContext;
+interface IDirectContext;
 
 class SRStructuredBuffer;
 class UAStructuredBuffer;

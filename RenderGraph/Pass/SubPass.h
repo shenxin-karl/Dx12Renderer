@@ -13,7 +13,6 @@ public:
 	SubPass(std::weak_ptr<dx12lib::GraphicsPSO> pGraphicsPso);
 	const std::string &getSubPassName() const;
 	void addBindable(std::shared_ptr<Bindable> pBindable);
-	std::shared_ptr<Bindable> getBindableByType(BindableType bindableType) const;
 	void bind(dx12lib::IGraphicsContext &graphicsCtx) const;
 	void accept(const Job &job);
 	void execute(dx12lib::IGraphicsContext &graphicsCtx) const;

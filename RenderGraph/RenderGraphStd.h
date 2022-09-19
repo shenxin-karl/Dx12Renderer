@@ -34,8 +34,10 @@ struct IDrawable : virtual public NonCopyable {
 };
 
 enum class PassType {
-	ExecutablePass,			// compute pass
+	ExecutablePass,			// pass
+	ComputablePass,			// compute pass
 	GraphicsPass,			// clear present pass
+	FullScreenPass,			// full screen
 	RenderQueuePass,		// draw call
 };
 

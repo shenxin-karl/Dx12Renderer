@@ -8,8 +8,8 @@
 
 namespace rgph {
 
-Step::Step(Material *pMaterial, SubPass *pSubPass)
-: _pSubPass(pSubPass), _pMaterial(pMaterial)
+Step::Step(SubPass *pSubPass)
+: _pSubPass(pSubPass)
 {
 }
 

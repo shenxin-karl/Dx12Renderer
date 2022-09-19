@@ -20,14 +20,6 @@ void SubPass::addBindable(std::shared_ptr<Bindable> pBindable) {
 	_bindables.push_back(std::move(pBindable));
 }
 
-std::shared_ptr<Bindable> SubPass::getBindableByType(BindableType bindableType) const {
-	for (auto &pBindable : _bindables) {
-		if (pBindable->getBindableType() == bindableType)
-			return pBindable;
-	}
-	return nullptr;
-}
-
 void SubPass::bind(dx12lib::IGraphicsContext &graphicsCtx) const {
 	graphicsCtx.setGraphicsPSO(_pGraphicsPso.lock());
 	if (_pOnBindCallback != nullptr)

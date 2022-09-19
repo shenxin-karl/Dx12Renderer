@@ -1,0 +1,26 @@
+#include "FullScreenPass.h"
+
+namespace rgph {
+
+FullScreenPass::FullScreenPass(const std::string &passName, bool rtActive, bool dsActive)
+: GraphicsPass(passName, rtActive, dsActive)
+{
+}
+
+void FullScreenPass::execute(dx12lib::DirectContextProxy pDirectCtx) {
+	GraphicsPass::execute(pDirectCtx);
+}
+
+void FullScreenPass::setFullScreenRenderable(std::shared_ptr<FullScreenRenderable> pFullScreenRenderable) {
+	_pFullScreenRenderable = std::move(pFullScreenRenderable);
+}
+
+auto FullScreenPass::getFullScreenRenderable() const -> std::shared_ptr<FullScreenRenderable> {
+	return _pFullScreenRenderable;
+}
+
+PassType FullScreenPass::getPassType() const {
+	return PassType::FullScreenPass;
+}
+
+}

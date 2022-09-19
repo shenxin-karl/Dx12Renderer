@@ -68,10 +68,10 @@ public:
 		};
 	}
 
-	friend void operator>>(std::shared_ptr<dx12lib::IResource> pOther, PassResourcePtr &rhs) {
+	friend void operator>>(std::shared_ptr<dx12lib::IResource> &pOther, PassResourcePtr &rhs) {
 		assert(pOther != nullptr);
-		rhs._linkResourceFunc = [&, ptr = std::move(pOther)]() mutable {
-			rhs._pResource = std::dynamic_pointer_cast<T>(ptr);
+		rhs._linkResourceFunc = [&]() mutable {
+			rhs._pResource = std::dynamic_pointer_cast<T>(pOther);
 		};
 	}
 
