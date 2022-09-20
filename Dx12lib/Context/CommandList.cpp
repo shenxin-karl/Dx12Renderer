@@ -221,7 +221,7 @@ std::shared_ptr<SamplerTextureCube> CommandList::createDDSTextureCubeFromMemory(
 	);
 }
 
-std::shared_ptr<ITextureResource> CommandList::createTextureFromFile(const std::wstring &fileName, bool sRGB) {
+std::shared_ptr<Texture> CommandList::createTextureFromFile(const std::wstring &fileName, bool sRGB) {
 	auto pos = fileName.find_last_of(L".");
 	if (pos == std::wstring::npos) {
 		assert(false);
@@ -248,7 +248,7 @@ std::shared_ptr<ITextureResource> CommandList::createTextureFromFile(const std::
 	return pTex;
 }
 
-std::shared_ptr<ITextureResource> CommandList::createTextureFromMemory(const std::string &extension,
+std::shared_ptr<Texture> CommandList::createTextureFromMemory(const std::string &extension,
 	const void *pData, 
 	size_t sizeInByte,
 	bool sRGB) 
@@ -280,6 +280,7 @@ void CommandList::setDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType,
 void CommandList::setConstantBufferView(const ShaderRegister &sr, const ConstantBufferView &cbv) {
 	assert(_currentGPUState.pRootSignature != nullptr);
 	assert(sr.slot.isCBV());
+	assert(cbv.valid());
 #ifdef DEBUG_MODE
 	WRL::ComPtr<ID3D12Resource> pD3DResource = cbv.getResource()->getD3DResource();
 	D3D12_RESOURCE_STATES state = _pResourceStateTracker->getResourceState(pD3DResource.Get());
@@ -291,6 +292,7 @@ void CommandList::setConstantBufferView(const ShaderRegister &sr, const Constant
 void CommandList::setShaderResourceView(const ShaderRegister &sr, const ShaderResourceView &srv) {
 	assert(_currentGPUState.pRootSignature != nullptr);
 	assert(sr.slot.isSRV());
+	assert(srv.valid());
 #ifdef DEBUG_MODE
 	WRL::ComPtr<ID3D12Resource> pD3DResource = srv.getResource()->getD3DResource();
 	D3D12_RESOURCE_STATES state = _pResourceStateTracker->getResourceState(pD3DResource.Get());
@@ -442,6 +444,8 @@ void CommandList::setGraphics32BitConstants(const ShaderRegister &sr, size_t num
 }
 
 void CommandList::setRenderTarget(const RenderTargetView &rtv, const DepthStencilView &dsv) {
+	assert(rtv.valid());
+	assert(dsv.valid());
 	_pCommandList->OMSetRenderTargets(
 		1, 
 		RVPtr(rtv.getCPUDescriptorHandle()), 
@@ -451,6 +455,7 @@ void CommandList::setRenderTarget(const RenderTargetView &rtv, const DepthStenci
 }
 
 void CommandList::setRenderTarget(const DepthStencilView &dsv) {
+	assert(dsv.valid());
 	_pCommandList->OMSetRenderTargets(
 		0,
 		nullptr,
@@ -460,6 +465,10 @@ void CommandList::setRenderTarget(const DepthStencilView &dsv) {
 }
 
 void CommandList::setRenderTargets(const std::vector<RenderTargetView> &rtvs, const DepthStencilView &dsv) {
+	assert(dsv.valid());
+	for (auto &view : rtvs)
+		assert(view.valid());
+
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> handles(rtvs.begin(), rtvs.end());
 	_pCommandList->OMSetRenderTargets(
 		1,
@@ -570,6 +579,7 @@ void CommandList::setComputePSO(std::shared_ptr<ComputePSO> pPipelineStateObject
 
 void CommandList::setUnorderedAccessView(const ShaderRegister &sr, const UnorderedAccessView &uav) {
 	assert(_currentGPUState.pRootSignature != nullptr);
+	assert(uav.valid());
 #ifdef DEBUG_MODE
 	WRL::ComPtr<ID3D12Resource> pD3DResource = uav.getResource()->getD3DResource();
 	D3D12_RESOURCE_STATES state = _pResourceStateTracker->getResourceState(pD3DResource.Get());
@@ -724,7 +734,7 @@ WRL::ComPtr<ID3D12Resource> CommandList::copyTextureSubResource(WRL::ComPtr<ID3D
 	return pSrcResource;
 }
 
-std::shared_ptr<ITextureResource> CommandList::createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage) {
+std::shared_ptr<Texture> CommandList::createTextureImpl(const DX::TexMetadata &metadata, const DX::ScratchImage &scratchImage) {
 	D3D12_RESOURCE_DESC textureDesc{};
 	switch (metadata.dimension) {
 	case DX::TEX_DIMENSION_TEXTURE2D:
@@ -775,28 +785,9 @@ std::shared_ptr<ITextureResource> CommandList::createTextureImpl(const DX::TexMe
 	);
 
 	trackResource(std::move(pUploader));
-
 	switch (metadata.dimension) {
 	case DirectX::TEX_DIMENSION_TEXTURE2D:
-		if (metadata.arraySize == 1) {
-			return std::make_shared<dx12libTool::MakeSamplerTexture2D>(
-				_pDevice,
-				pTextureResource,
-				D3D12_RESOURCE_STATE_GENERIC_READ
-			);
-		} else if (metadata.arraySize == 6) {
-			return std::make_shared<dx12libTool::MakeSamplerTextureCube>(
-				_pDevice,
-				pTextureResource,
-				D3D12_RESOURCE_STATE_GENERIC_READ
-			);
-		} else {
-			return std::make_shared<dx12libTool::MakeSamplerTexture2DArray>(
-				_pDevice,
-				pTextureResource,
-				D3D12_RESOURCE_STATE_GENERIC_READ
-			);
-		}
+		return std::make_shared<dx12libTool::MakeTexture>(_pDevice, pTextureResource, D3D12_RESOURCE_STATE_GENERIC_READ);
 	case DirectX::TEX_DIMENSION_TEXTURE3D:
 	case DirectX::TEX_DIMENSION_TEXTURE1D:
 	default:

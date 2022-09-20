@@ -37,24 +37,25 @@ std::weak_ptr<Device> IResource::getDevice() const {
 }
 
 bool IResource::checkRTVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_RENDER_TARGET;
+	return state == D3D12_RESOURCE_STATE_COMMON || state & D3D12_RESOURCE_STATE_RENDER_TARGET;
 }
 
 bool IResource::checkDSVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	return state == D3D12_RESOURCE_STATE_COMMON || state & D3D12_RESOURCE_STATE_DEPTH_WRITE;
 }
 
 bool IResource::checkCBVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	return state == D3D12_RESOURCE_STATE_COMMON || state & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 }
 
 bool IResource::checkSRVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ||
+	return state == D3D12_RESOURCE_STATE_COMMON					  ||
+		   state & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE ||
 		   state & D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 }
 
 bool IResource::checkUAVState(D3D12_RESOURCE_STATES state) const {
-	return state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	return state == D3D12_RESOURCE_STATE_COMMON || state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }
 
 BufferType IConstantBuffer::getBufferType() const {

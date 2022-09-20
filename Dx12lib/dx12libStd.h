@@ -185,6 +185,8 @@ interface IDepthStencil;
 interface IDepthStencil2D;
 interface IDepthStencil2DArray;
 
+class Texture;
+
 struct NonCopyable {
 	NonCopyable() = default;
 	NonCopyable(NonCopyable &&) = default;

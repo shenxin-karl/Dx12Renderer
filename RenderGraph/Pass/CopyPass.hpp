@@ -4,6 +4,7 @@
 namespace rgph {
 
 class CopyPass : public ExecutablePass {
+public:
 	CopyPass(const std::string &passName)
 		: ExecutablePass(passName)
 		, pSrcResource(this, "pSrcResource")
