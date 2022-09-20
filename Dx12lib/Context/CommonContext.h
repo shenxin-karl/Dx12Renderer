@@ -29,6 +29,7 @@ interface ICommonContext : IContext {
 	virtual std::shared_ptr<SamplerTextureCube> createDDSTextureCubeFromMemory(const void *pData, size_t sizeInByte) = 0;
 	virtual std::shared_ptr<ITextureResource> createTextureFromFile(const std::wstring &fileName, bool sRGB = false) = 0;
 	virtual std::shared_ptr<ITextureResource> createTextureFromMemory(const std::string &extension, const void *pData, size_t sizeInByte, bool sRGB = false) = 0;
+
 	virtual	void setDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, WRL::ComPtr<ID3D12DescriptorHeap> pHeap) = 0;
 	virtual void setConstantBufferView(const ShaderRegister &sr, const ConstantBufferView &crv) = 0;
 	virtual void setShaderResourceView(const ShaderRegister &sr, const ShaderResourceView &srv) = 0;
@@ -65,6 +66,7 @@ interface ICommonContext : IContext {
 			flushBarrier
 		);
 	}
+
 
 	/////////////////////////////////// ConstantBuffer //////////////////////////////////
 #if 1
@@ -192,6 +194,14 @@ interface ICommonContext : IContext {
 			getDevice(),
 			std::forward<Args>(args)...
 		);
+	}
+#endif
+
+#if 1
+	/////////////////////////////////// Texture //////////////////////////////////
+	template<typename ...Args>
+	std::shared_ptr<Texture> createTexture(Args&&... args) {
+		return std::make_shared<dx12libTool::MakeTexture>(getDevice(), std::forward<Args>(args)...);
 	}
 #endif
 };

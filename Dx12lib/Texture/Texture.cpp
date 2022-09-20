@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include "Dx12lib/Device/Device.h"
+#include "Dx12lib/Resource/ITextureResource.h"
 #include "Dx12lib/Resource/ResourceStateTracker.h"
 
 namespace dx12lib {
@@ -64,56 +65,516 @@ auto Texture::getArraySize() const -> size_t {
 	return _resourceDesc.DepthOrArraySize;
 }
 
-auto Texture::getSRV(size_t mipSlice) const -> const ShaderResourceView * {
+auto Texture::get2dSRV(size_t mipSlice) const -> const ShaderResourceView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+		return nullptr;
 
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_2D;
+	viewKey.viewType = ViewType::SRV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<ShaderResourceView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	auto pResource = getD3DResource();
+	auto resourceDesc = pResource->GetDesc();
+	DXGI_FORMAT format = resourceDesc.Format;
+	if (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		format = getDepthSRVFormat(format);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = -1;
+	srvDesc.Texture2D.PlaneSlice = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = static_cast<float>(mipSlice);
+
+	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
+		pResource.Get(),
+		&srvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	ShaderResourceView SRV(descriptor, this);
+	return &std::get<ShaderResourceView>(_viewMap[viewKey] = SRV);
 }
 
-auto Texture::getUAV(size_t mipSlice) const -> const UnorderedAccessView * {
+auto Texture::get2dUAV(size_t mipSlice) const -> const UnorderedAccessView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkUAVSupport())
+		return nullptr;
 
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_2D;
+	viewKey.viewType = ViewType::UAV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<UnorderedAccessView>(iter->second);
+
+	assert(mipSlice < getMipLevels());
+	auto pResource = getD3DResource();
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = pResource->GetDesc().Format;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = static_cast<UINT>(mipSlice);
+	uavDesc.Texture2D.PlaneSlice = 0;
+	pSharedDevice->getD3DDevice()->CreateUnorderedAccessView(
+		pResource.Get(),
+		nullptr,
+		&uavDesc,
+		descriptor.getCPUHandle()
+	);
+
+	UnorderedAccessView UAV(descriptor, this);
+	return &std::get<UnorderedAccessView>(_viewMap[viewKey] = UAV);
 }
 
-auto Texture::getRTV(size_t mipSlice) const -> const RenderTargetView * {
+auto Texture::get2dRTV(size_t mipSlice) const -> const RenderTargetView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkRTVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_2D;
+	viewKey.viewType = ViewType::RTV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<RenderTargetView>(iter->second);
+
+	auto pResource = getD3DResource();
+	auto resourceDesc = pResource->GetDesc();
+	assert(mipSlice < resourceDesc.MipLevels);
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = resourceDesc.Format;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.PlaneSlice = 0;
+	rtvDesc.Texture2D.MipSlice = static_cast<UINT>(mipSlice);
+
+	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
+		pResource.Get(),
+		&rtvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	RenderTargetView RTV(descriptor, this);
+	return &std::get<RenderTargetView>(_viewMap[viewKey] = RTV);
 }
 
-auto Texture::getDSV(size_t mipSlice) const -> const DepthStencilView * {
+auto Texture::get2dDSV(size_t mipSlice) const -> const DepthStencilView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkDSVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_2D;
+	viewKey.viewType = ViewType::DSV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<DepthStencilView>(iter->second);
+
+	auto pResource = getD3DResource();
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+	auto resourceDesc = pResource->GetDesc();
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	depthStencilViewDesc.Format = getDepthDSVFormat(resourceDesc.Format);
+	depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = static_cast<UINT>(mipSlice);
+	depthStencilViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+	assert(isDepthFormat(depthStencilViewDesc.Format));
+	DepthStencilView DSV(descriptor, this);
+	pSharedDevice->getD3DDevice()->CreateDepthStencilView(
+		pResource.Get(),
+		&depthStencilViewDesc,
+		DSV.getCPUDescriptorHandle()
+	);
+	return &std::get<DepthStencilView>(_viewMap[viewKey] = DSV);
 }
 
 auto Texture::getPlaneSRV(size_t planeSlice, size_t mipSlice) const -> const ShaderResourceView * {
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkSRVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::SRV;
+	viewKey.mipSlice = mipSlice;
+	viewKey.first = planeSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<ShaderResourceView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto resourceDesc = _pResource->GetDesc();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	DXGI_FORMAT format = resourceDesc.Format;
+	if (resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		format = getDepthSRVFormat(format);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.MipLevels = -1;
+	srvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
+	srvDesc.Texture2DArray.ArraySize = 1;
+	srvDesc.Texture2DArray.PlaneSlice = 0;
+	srvDesc.Texture2DArray.ResourceMinLODClamp = static_cast<float>(mipSlice);
+	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
+		_pResource.Get(),
+		&srvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	ShaderResourceView SRV(descriptor, this);
+	return &std::get<ShaderResourceView>(_viewMap[viewKey] = SRV);
 }
 
 auto Texture::getPlaneUAV(size_t planeSlice, size_t mipSlice) const -> const UnorderedAccessView * {
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkUAVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::UAV;
+	viewKey.mipSlice = mipSlice;
+	viewKey.first = planeSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<UnorderedAccessView>(iter->second);
+
+	assert(mipSlice < getMipLevels());
+	auto pResource = getD3DResource();
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = pResource->GetDesc().Format;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
+	uavDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
+	uavDesc.Texture2DArray.ArraySize = 1;
+	uavDesc.Texture2DArray.PlaneSlice = 0;
+	pSharedDevice->getD3DDevice()->CreateUnorderedAccessView(
+		pResource.Get(),
+		nullptr,
+		&uavDesc,
+		descriptor.getCPUHandle()
+	);
+
+	UnorderedAccessView UAV(descriptor, this);
+	return &std::get<UnorderedAccessView>(_viewMap[viewKey] = UAV);
 }
 
 auto Texture::getPlaneRTV(size_t planeSlice, size_t mipSlice) const -> const RenderTargetView * {
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkRTVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::RTV;
+	viewKey.mipSlice = mipSlice;
+	viewKey.first = planeSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<RenderTargetView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = _resourceDesc.Format;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
+	rtvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
+	rtvDesc.Texture2DArray.ArraySize = 1;
+	rtvDesc.Texture2DArray.PlaneSlice = 0;
+	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
+		_pResource.Get(),
+		&rtvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	RenderTargetView RTV(descriptor, this);
+	return &std::get<RenderTargetView>(_viewMap[viewKey] = RTV);
 }
 
 auto Texture::getPlaneDSV(size_t planeSlice, size_t mipSlice) const -> const DepthStencilView * {
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkDSVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::DSV;
+	viewKey.mipSlice = mipSlice;
+	viewKey.first = planeSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<DepthStencilView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto pResource = getD3DResource();
+	auto resourceDesc = pResource->GetDesc();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = getDepthDSVFormat(resourceDesc.Format);
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+	dsvDesc.Texture2DArray.MipSlice = 0;
+	dsvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(planeSlice);
+	dsvDesc.Texture2DArray.ArraySize = 1;
+	pSharedDevice->getD3DDevice()->CreateDepthStencilView(
+		pResource.Get(),
+		&dsvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	DepthStencilView DSV(descriptor, this);
+	return &std::get<DepthStencilView>(_viewMap[viewKey] = DSV);
 }
 
 auto Texture::getCubeSRV(size_t mipSlice) const -> const ShaderResourceView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_CUBE;
+	viewKey.viewType = ViewType::SRV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<ShaderResourceView>(iter->second);
+
+	assert(mipSlice < _resourceDesc.MipLevels);
+	auto pSharedDevice = getDevice().lock();
+
+	DXGI_FORMAT format = _resourceDesc.Format;
+	if (_resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		format = getDepthSRVFormat(format);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MipLevels = -1;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.ResourceMinLODClamp = static_cast<float>(mipSlice);
+
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
+		_pResource.Get(),
+		&srvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	ShaderResourceView SRV(descriptor, this);
+	return &std::get<ShaderResourceView>(_viewMap[viewKey] = SRV);
 }
 
-auto Texture::getCubeUAV(size_t mipSlice) const -> const UnorderedAccessView * {
+auto Texture::getArraySRV(size_t mipSlice) const -> const ShaderResourceView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::SRV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<ShaderResourceView>(iter->second);
+
+	assert(mipSlice < _resourceDesc.MipLevels);
+	auto pSharedDevice = getDevice().lock();
+
+	DXGI_FORMAT format = _resourceDesc.Format;
+	if (_resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		format = getDepthSRVFormat(format);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Texture2DArray.MipLevels = -1;
+	srvDesc.Texture2DArray.PlaneSlice = 0;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.ResourceMinLODClamp = static_cast<float>(mipSlice);
+	srvDesc.Texture2DArray.FirstArraySlice = 0;
+	srvDesc.Texture2DArray.ArraySize = _resourceDesc.DepthOrArraySize;
+
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	pSharedDevice->getD3DDevice()->CreateShaderResourceView(
+		_pResource.Get(),
+		&srvDesc,
+		descriptor.getCPUHandle()
+	);
+
+	ShaderResourceView SRV(descriptor, this);
+	return &std::get<ShaderResourceView>(_viewMap[viewKey] = SRV);
 }
 
-auto Texture::getCubeRTV(size_t mipSlice) const -> const RenderTargetView * {
+auto Texture::getArrayUAV(size_t mipSlice) const -> const UnorderedAccessView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkUAVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::UAV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<UnorderedAccessView>(iter->second);
+
+	assert(mipSlice < getMipLevels());
+	auto pResource = getD3DResource();
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = pResource->GetDesc().Format;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavDesc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
+	uavDesc.Texture2DArray.FirstArraySlice = 0;
+	uavDesc.Texture2DArray.ArraySize = 6;
+	uavDesc.Texture2DArray.PlaneSlice = 0;
+	pSharedDevice->getD3DDevice()->CreateUnorderedAccessView(
+		pResource.Get(),
+		nullptr,
+		&uavDesc,
+		descriptor.getCPUHandle()
+	);
+
+	UnorderedAccessView UAV(descriptor, this);
+	return &std::get<UnorderedAccessView>(_viewMap[viewKey] = UAV);
 }
 
-auto Texture::getCubeDSV(size_t mipSlice) const -> const DepthStencilView * {
+auto Texture::getArrayRTV(size_t mipSlice) const -> const RenderTargetView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkRTVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::RTV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<RenderTargetView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	D3D12_RENDER_TARGET_VIEW_DESC desc;
+	desc.Format = _resourceDesc.Format;
+	desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	desc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
+	desc.Texture2DArray.FirstArraySlice = 0;
+	desc.Texture2DArray.ArraySize = _resourceDesc.DepthOrArraySize;
+	desc.Texture2DArray.PlaneSlice = 0;
+	pSharedDevice->getD3DDevice()->CreateRenderTargetView(
+		_pResource.Get(),
+		&desc,
+		descriptor.getCPUHandle()
+	);
+
+	RenderTargetView RTV(descriptor, this);
+	return &std::get<RenderTargetView>(_viewMap[viewKey] = RTV);
+}
+
+auto Texture::getArrayDSV(size_t mipSlice) const -> const DepthStencilView * {
+	if (mipSlice >= _resourceDesc.MipLevels || !checkDSVSupport())
+		return nullptr;
+
+	ViewKey viewKey;
+	viewKey.dimension = ViewDimension::VD_ARRAY;
+	viewKey.viewType = ViewType::DSV;
+	viewKey.mipSlice = mipSlice;
+	if (auto iter = _viewMap.find(viewKey); iter != _viewMap.end())
+		return &std::get<DepthStencilView>(iter->second);
+
+	auto pSharedDevice = getDevice().lock();
+	auto descriptor = pSharedDevice->allocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC desc;
+	desc.Format = _resourceDesc.Format;
+	desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+	desc.Flags = D3D12_DSV_FLAG_NONE;
+	desc.Texture2DArray.MipSlice = static_cast<UINT>(mipSlice);
+	desc.Texture2DArray.FirstArraySlice = 0;
+	desc.Texture2DArray.ArraySize = _resourceDesc.DepthOrArraySize;
+
+	pSharedDevice->getD3DDevice()->CreateDepthStencilView(
+		_pResource.Get(),
+		&desc,
+		descriptor.getCPUHandle()
+	);
+
+	DepthStencilView DSV(descriptor, this);
+	return &std::get<DepthStencilView>(_viewMap[viewKey] = DSV);
+}
+
+auto Texture::getMipLevels() const -> size_t {
+	return _resourceDesc.MipLevels;
 }
 
 Texture::~Texture() {
+	if (auto pSharedDevice = getDevice().lock()) {
+		if (auto *pGlobalResource = pSharedDevice->getGlobalResourceState())
+			pGlobalResource->removeGlobalResourceState(_pResource.Get());
+	}
 }
 
-D3D12_RESOURCE_DESC Texture::make2D(size_t width, size_t height, D3D12_RESOURCE_FLAGS flags, size_t numMipMap) {
-}
-
-D3D12_RESOURCE_DESC Texture::make2DArray(size_t width, size_t height, size_t arraySize, 
+D3D12_RESOURCE_DESC Texture::make2D(DXGI_FORMAT format, size_t width, size_t height, 
 	D3D12_RESOURCE_FLAGS flags, size_t numMipMap)
 {
+	D3D12_RESOURCE_DESC desc;
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Alignment = 0;
+	desc.Width = static_cast<UINT64>(width);
+	desc.Height = static_cast<UINT>(height);
+	desc.DepthOrArraySize = 1;
+	desc.MipLevels = static_cast<UINT16>(numMipMap);
+	desc.Format = format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = flags;
+	return desc;
 }
 
-D3D12_RESOURCE_DESC Texture::makeCube(size_t width, size_t height, D3D12_RESOURCE_DESC flags, size_t numMipMap) {
+D3D12_RESOURCE_DESC Texture::make2DArray(DXGI_FORMAT format, size_t width, size_t height, size_t arraySize,
+	D3D12_RESOURCE_FLAGS flags, size_t numMipMap)
+{
+	D3D12_RESOURCE_DESC desc;
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Alignment = 0;
+	desc.Width = static_cast<UINT64>(width);
+	desc.Height = static_cast<UINT>(height);
+	desc.DepthOrArraySize = static_cast<UINT16>(arraySize);
+	desc.MipLevels = static_cast<UINT16>(numMipMap);
+	desc.Format = format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = flags;
+	return desc;
+}
+
+D3D12_RESOURCE_DESC Texture::makeCube(DXGI_FORMAT format, size_t width, size_t height, 
+	D3D12_RESOURCE_FLAGS flags, size_t numMipMap)
+{
+	D3D12_RESOURCE_DESC desc;
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Alignment = 0;
+	desc.Width = static_cast<UINT64>(width);
+	desc.Height = static_cast<UINT>(height);
+	desc.DepthOrArraySize = 6;
+	desc.MipLevels = static_cast<UINT16>(numMipMap);
+	desc.Format = format;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.Flags = flags;
+	return desc;
 }
 
 bool Texture::checkSRVSupport() const {
@@ -127,7 +588,7 @@ bool Texture::checkUAVSupport() const {
 bool Texture::checkRTVSupport() const {
 	return checkFormatSupport(D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) &&
 		   checkFormatSupport(D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD)				 &&
-		   checkFormatSupport(D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE)				 ;
+		   checkFormatSupport(D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE)			 ;
 }
 
 bool Texture::checkDSVSupport() const {

@@ -74,4 +74,6 @@ using MakeUnorderedAccessCube = _MakeObjectTool<UnorderedAccessCube>;
 
 using MakeUAStructuredBuffer = _MakeObjectTool<UAStructuredBuffer>;
 
+using MakeTexture = _MakeObjectTool<Texture>;
+
 }

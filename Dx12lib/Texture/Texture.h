@@ -19,76 +19,89 @@ public:
 	auto getDimension() const -> TextureDimension;
 	auto getDesc() const -> const D3D12_RESOURCE_DESC &;
 	auto getArraySize() const -> size_t;
-	auto getSRV(size_t mipSlice = 0) const -> const ShaderResourceView *;
-	auto getUAV(size_t mipSlice = 0) const -> const UnorderedAccessView *;
-	auto getRTV(size_t mipSlice = 0) const -> const RenderTargetView *;
-	auto getDSV(size_t mipSlice = 0) const -> const DepthStencilView *;
+	auto get2dSRV(size_t mipSlice = 0) const -> const ShaderResourceView *;
+	auto get2dUAV(size_t mipSlice = 0) const -> const UnorderedAccessView *;
+	auto get2dRTV(size_t mipSlice = 0) const -> const RenderTargetView *;
+	auto get2dDSV(size_t mipSlice = 0) const -> const DepthStencilView *;
 	auto getPlaneSRV(size_t planeSlice, size_t mipSlice = 0) const -> const ShaderResourceView *;
 	auto getPlaneUAV(size_t planeSlice, size_t mipSlice = 0) const -> const UnorderedAccessView *;
 	auto getPlaneRTV(size_t planeSlice, size_t mipSlice = 0) const -> const RenderTargetView *;
 	auto getPlaneDSV(size_t planeSlice, size_t mipSlice = 0) const -> const DepthStencilView *;
 	auto getCubeSRV(size_t mipSlice = 0) const -> const ShaderResourceView *;
-	auto getCubeUAV(size_t mipSlice = 0) const -> const UnorderedAccessView *;
-	auto getCubeRTV(size_t mipSlice = 0) const -> const RenderTargetView *;
-	auto getCubeDSV(size_t mipSlice = 0) const -> const DepthStencilView *;
+	auto getArraySRV(size_t mipSlice = 0) const -> const ShaderResourceView *;
+	auto getArrayUAV(size_t mipSlice = 0) const -> const UnorderedAccessView *;
+	auto getArrayRTV(size_t mipSlice = 0) const -> const RenderTargetView *;
+	auto getArrayDSV(size_t mipSlice = 0) const -> const DepthStencilView *;
+	auto getMipLevels() const -> size_t;
 	~Texture() override;
-	static D3D12_RESOURCE_DESC make2D(size_t width, size_t height, 
+	static D3D12_RESOURCE_DESC make2D(DXGI_FORMAT format, size_t width, size_t height,
 		D3D12_RESOURCE_FLAGS flags, size_t numMipMap = 1
 	);
-	static D3D12_RESOURCE_DESC make2DArray(size_t width, size_t height, size_t arraySize, 
+	static D3D12_RESOURCE_DESC make2DArray(DXGI_FORMAT format, size_t width, size_t height, size_t arraySize,
 		D3D12_RESOURCE_FLAGS flags, size_t numMipMap = 1
 	);
-	static D3D12_RESOURCE_DESC makeCube(size_t width, size_t height,
-		D3D12_RESOURCE_DESC flags, size_t numMipMap = 1
+	static D3D12_RESOURCE_DESC makeCube(DXGI_FORMAT format, size_t width, size_t height,
+		D3D12_RESOURCE_FLAGS flags, size_t numMipMap = 1
 	);
 	bool checkSRVSupport() const;
 	bool checkUAVSupport() const;
 	bool checkRTVSupport() const;
 	bool checkDSVSupport() const;
 private:
-	struct ViewKey;
-	enum class ViewType;
+	enum class ViewType {
+		Unknown = 0,
+		SRV = 1,
+		UAV = 2,
+		RTV = 3,
+		DSV = 4,
+	};
+
+	enum class ViewDimension {
+		Unknown		= 0,
+		VD_2D		= 1,
+		VD_ARRAY	= 2,
+		VD_CUBE		= 3,
+		VD_3D		= 4,
+	};
+
+	struct ViewKey {
+		ViewType viewType;
+		ViewDimension dimension;
+		size_t mipSlice;
+		size_t first;
+
+		struct Hasher {
+			using result_type = std::size_t;
+			result_type operator()(const ViewKey &key) const {
+				std::hash<std::string_view> hasher;
+				auto strView = std::string_view(reinterpret_cast<const char *>(&key), sizeof(key));
+				return hasher(strView);
+			}
+		};
+	public:
+		ViewKey() {
+			std::memset(this, 0, sizeof(*this));
+		}
+		friend bool operator==(const ViewKey &lhs, const ViewKey &rhs) {
+			return std::memcmp(&lhs, &rhs, sizeof(ViewKey)) == 0;
+		}
+	};
+
 	using ViewMap = std::unordered_map<ViewKey,
-		std::variant<ShaderResourceView, UnorderedAccessView, RenderTargetView, DepthStencilView>
+		std::variant<ShaderResourceView, UnorderedAccessView, RenderTargetView, DepthStencilView>,
+		ViewKey::Hasher
 	>;
 	void initFeatureSupport(ID3D12Device *pDevice, DXGI_FORMAT format);
 	bool checkFormatSupport(D3D12_FORMAT_SUPPORT1 formatSupport1) const;
 	bool checkFormatSupport(D3D12_FORMAT_SUPPORT2 formatSupport2) const;
 private:
-	ViewMap _viewMap;
+	mutable ViewMap _viewMap;
 	D3D12_CLEAR_VALUE _clearValue;
 	D3D12_RESOURCE_DESC _resourceDesc;
 	WRL::ComPtr<ID3D12Resource> _pResource;
 	D3D12_FEATURE_DATA_FORMAT_SUPPORT _formatSupport;
 };
 
-enum class Texture::ViewType {
-	Unknown = 0,
-	SRV     = 1,
-	UAV     = 2,
-	RTV     = 3,
-	DSV     = 4,
-};
-
-struct Texture::ViewKey {
-	ViewType viewType;
-	ShaderResourceDimension dimension;
-	size_t mipSlice;
-	size_t planeSlice;
-	size_t first;
-
-	struct Hasher {
-		using result_type = std::size_t;
-		result_type operator()(const ViewKey &key) const {
-			std::hash<std::string_view> hasher;
-			auto strView = std::string_view(reinterpret_cast<const char *>(&key), sizeof(key));
-			return hasher(strView);
-		}
-	};
-public:
-	ViewKey();
-	friend bool operator==(const ViewKey &, const ViewKey &);
-};
 
 }
 

@@ -18,6 +18,7 @@
 #include <Dx12lib/Buffer/ConstantBuffer.h>
 #include <Dx12lib/Buffer/IndexBuffer.h>
 #include <Dx12lib/Buffer/VertexBuffer.h>
+#include <Dx12lib/Texture/Texture.h>
 #include <iostream>
 
 #if defined(_DEBUG) || defined(DEBUG)
