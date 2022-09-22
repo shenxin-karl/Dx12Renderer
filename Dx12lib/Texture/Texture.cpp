@@ -82,8 +82,10 @@ auto Texture::getArraySize() const -> size_t {
 }
 
 auto Texture::get2dSRV(size_t mipSlice) const -> const ShaderResourceView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() != 1 || !checkSRVSupport()) {
+		assert(false);
 		return InvalidSRV;
+	}
 
 	ViewKey viewKey;
 	viewKey.dimension = ViewDimension::VD_2D;
@@ -121,8 +123,10 @@ auto Texture::get2dSRV(size_t mipSlice) const -> const ShaderResourceView & {
 }
 
 auto Texture::get2dUAV(size_t mipSlice) const -> const UnorderedAccessView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkUAVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() != 1 || !checkUAVSupport()) {
+		assert(false);
 		return InvalidUAV;
+	}
 
 	ViewKey viewKey;
 	viewKey.dimension = ViewDimension::VD_2D;
@@ -152,7 +156,7 @@ auto Texture::get2dUAV(size_t mipSlice) const -> const UnorderedAccessView & {
 }
 
 auto Texture::get2dRTV(size_t mipSlice) const -> const RenderTargetView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkRTVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() != 1 || !checkRTVSupport())
 		return InvalidRTV;
 
 	ViewKey viewKey;
@@ -185,7 +189,7 @@ auto Texture::get2dRTV(size_t mipSlice) const -> const RenderTargetView & {
 }
 
 auto Texture::get2dDSV(size_t mipSlice) const -> const DepthStencilView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkDSVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() != 1 || !checkDSVSupport())
 		return InvalidDSV;
 
 	ViewKey viewKey;
@@ -216,7 +220,7 @@ auto Texture::get2dDSV(size_t mipSlice) const -> const DepthStencilView & {
 }
 
 auto Texture::getPlaneSRV(size_t planeSlice, size_t mipSlice) const -> const ShaderResourceView & {
-	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkSRVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= getDepthOrArraySize() || !checkSRVSupport())
 		return InvalidSRV;
 
 	ViewKey viewKey;
@@ -256,7 +260,7 @@ auto Texture::getPlaneSRV(size_t planeSlice, size_t mipSlice) const -> const Sha
 }
 
 auto Texture::getPlaneUAV(size_t planeSlice, size_t mipSlice) const -> const UnorderedAccessView & {
-	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkUAVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= getDepthOrArraySize() || !checkUAVSupport())
 		return InvalidUAV;
 
 	ViewKey viewKey;
@@ -290,7 +294,7 @@ auto Texture::getPlaneUAV(size_t planeSlice, size_t mipSlice) const -> const Uno
 }
 
 auto Texture::getPlaneRTV(size_t planeSlice, size_t mipSlice) const -> const RenderTargetView & {
-	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkRTVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= getDepthOrArraySize() || !checkRTVSupport())
 		return InvalidRTV;
 
 	ViewKey viewKey;
@@ -321,7 +325,7 @@ auto Texture::getPlaneRTV(size_t planeSlice, size_t mipSlice) const -> const Ren
 }
 
 auto Texture::getPlaneDSV(size_t planeSlice, size_t mipSlice) const -> const DepthStencilView & {
-	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= _resourceDesc.DepthOrArraySize || !checkDSVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || planeSlice >= getDepthOrArraySize() || !checkDSVSupport())
 		return InvalidDSV;
 
 	ViewKey viewKey;
@@ -355,8 +359,10 @@ auto Texture::getPlaneDSV(size_t planeSlice, size_t mipSlice) const -> const Dep
 }
 
 auto Texture::getCubeSRV(size_t mipSlice) const -> const ShaderResourceView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() != 6 || !checkSRVSupport()) {
+		assert(false);
 		return InvalidSRV;
+	}
 
 	ViewKey viewKey;
 	viewKey.dimension = ViewDimension::VD_CUBE;
@@ -392,7 +398,7 @@ auto Texture::getCubeSRV(size_t mipSlice) const -> const ShaderResourceView & {
 }
 
 auto Texture::getArraySRV(size_t mipSlice) const -> const ShaderResourceView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkSRVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() <= 1 || !checkSRVSupport())
 		return InvalidSRV;
 
 	ViewKey viewKey;
@@ -428,7 +434,7 @@ auto Texture::getArraySRV(size_t mipSlice) const -> const ShaderResourceView & {
 }
 
 auto Texture::getArrayUAV(size_t mipSlice) const -> const UnorderedAccessView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkUAVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() <= 1 || !checkUAVSupport())
 		return InvalidUAV;
 
 	ViewKey viewKey;
@@ -462,7 +468,7 @@ auto Texture::getArrayUAV(size_t mipSlice) const -> const UnorderedAccessView & 
 }
 
 auto Texture::getArrayRTV(size_t mipSlice) const -> const RenderTargetView & {
-	if (mipSlice >= _resourceDesc.MipLevels || _resourceDesc.DepthOrArraySize <= 2 || !checkRTVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() <= 1 || !checkRTVSupport())
 		return InvalidRTV;
 
 	ViewKey viewKey;
@@ -493,7 +499,7 @@ auto Texture::getArrayRTV(size_t mipSlice) const -> const RenderTargetView & {
 }
 
 auto Texture::getArrayDSV(size_t mipSlice) const -> const DepthStencilView & {
-	if (mipSlice >= _resourceDesc.MipLevels || !checkDSVSupport())
+	if (mipSlice >= _resourceDesc.MipLevels || getDepthOrArraySize() <= 1 || !checkDSVSupport())
 		return InvalidDSV;
 
 	ViewKey viewKey;
